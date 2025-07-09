@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "629019692790",
+    "project_id": "jeeva-shg-loan",
+    "storage_bucket": "jeeva-shg-loan.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:629019692790:android:2cee053b82de1cf96da6d7",
+        "android_client_info": {
+          "package_name": "com.loanmanager"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "629019692790-5b4jtkqhdrtg5ch2vue5lolrn3q36mg4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD_-JI1U4hN3SCh5qlGTbsBPM3DgOvkj9Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "629019692790-5b4jtkqhdrtg5ch2vue5lolrn3q36mg4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
