@@ -173,7 +173,8 @@ export default function PaymentsScreen({ onNavigate }: PaymentsScreenProps) {
     <ScrollView
       style={[styles.container, webMinHeight]}
       contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={Platform.OS === 'web'}
+      nestedScrollEnabled={true}
     >
       <StatusBar style="auto" />
       

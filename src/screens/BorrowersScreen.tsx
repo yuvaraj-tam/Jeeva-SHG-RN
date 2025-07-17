@@ -343,7 +343,8 @@ export default function BorrowersScreen({ navigation }: any) {
     <ScrollView
       style={[styles.container, webMinHeight]}
       contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={Platform.OS === 'web'}
+      nestedScrollEnabled={true}
     >
       <StatusBar style="auto" />
       

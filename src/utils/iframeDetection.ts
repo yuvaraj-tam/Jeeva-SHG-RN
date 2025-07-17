@@ -54,14 +54,75 @@ class IframeManager {
 
     // Add dynamic styles for iframe optimization
     const styles = `
+      /* Base iframe styles */
       .iframe-mode {
         margin: 0 !important;
         padding: 0 !important;
-        overflow-x: hidden;
+        overflow-x: hidden !important;
         min-height: 100vh;
         -webkit-overflow-scrolling: touch;
       }
 
+      /* Force scrolling on all containers */
+      .iframe-mode * {
+        max-width: 100% !important;
+      }
+
+      /* React Native Web ScrollView fixes */
+      .iframe-mode [data-rn-root="true"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: 100vh !important;
+      }
+
+      /* Target React Native ScrollView specifically */
+      .iframe-mode [class*="ScrollView"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        max-height: none !important;
+      }
+
+      /* Force scroll on all scroll containers */
+      .iframe-mode [style*="overflow"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Target specific React Native Web elements */
+      .iframe-mode [data-testid="scroll-view"],
+      .iframe-mode [class*="scroll"],
+      .iframe-mode [class*="Scroll"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        max-height: none !important;
+      }
+
+      /* Force scroll on body and html */
+      .iframe-mode html,
+      .iframe-mode body {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+
+      /* Target the main app container */
+      .iframe-mode #root {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+
+      /* Force scroll on all View components */
+      .iframe-mode [class*="View"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Sidebar specific styles */
       .iframe-mode .sidebar {
         position: fixed;
         z-index: 1000;
@@ -74,22 +135,6 @@ class IframeManager {
         transition: margin-left 0.3s ease;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-      }
-
-      /* Enhanced scrolling for iframe */
-      .iframe-mode .scroll-view,
-      .iframe-mode [data-scroll="true"],
-      .iframe-mode .ScrollView {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        scroll-behavior: smooth;
-        max-height: 100vh;
-      }
-
-      /* Fix for React Native Web ScrollView */
-      .iframe-mode .ScrollView__content {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
       }
 
       /* Mobile optimization for iframe */
@@ -125,19 +170,6 @@ class IframeManager {
         .iframe-mode .mobile-menu-overlay.active {
           display: block;
         }
-
-        /* Enhanced mobile scrolling */
-        .iframe-mode .scroll-view,
-        .iframe-mode [data-scroll="true"] {
-          height: calc(100vh - 120px) !important;
-          overflow-y: auto !important;
-          -webkit-overflow-scrolling: touch !important;
-        }
-      }
-
-      /* Prevent horizontal scrolling in iframe */
-      .iframe-mode * {
-        max-width: 100% !important;
       }
 
       /* Optimize buttons and interactive elements */
@@ -166,6 +198,32 @@ class IframeManager {
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         max-height: calc(100vh - 200px);
+      }
+
+      /* Force scroll on all containers with flex: 1 */
+      .iframe-mode [style*="flex: 1"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Target React Native Web specific classes */
+      .iframe-mode [class*="react-native"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Force scroll on all div elements */
+      .iframe-mode div {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Specific fix for the main container */
+      .iframe-mode [style*="flex: 1"] {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100vh !important;
       }
     `;
 

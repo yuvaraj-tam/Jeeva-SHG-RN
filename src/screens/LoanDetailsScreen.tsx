@@ -576,8 +576,8 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
               <Text style={styles.detailValue}>
                 {item.paymentMethod === 'cash' ? 'Cash' :
                  item.paymentMethod === 'upi' ? 'UPI' :
-                 item.paymentMethod === 'bank_transfer' ? 'Bank Transfer' :
-                 item.paymentMethod === 'cheque' ? 'Cheque' :
+                 item.paymentMethod === 'bank_transfer' ? 'Netbanking' :
+                 item.paymentMethod === 'cheque' ? 'Card' :
                  item.paymentMethod === 'bank_deposit' ? 'Bank Deposit' :
                  item.paymentMethod === 'collection_agent' ? 'Collection Agent' :
                  item.paymentMethod === 'online_transfer' ? 'Online Transfer' :
@@ -644,7 +644,8 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
     <ScrollView
       style={[styles.container, webMinHeight]}
       contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={false}
+      showsVerticalScrollIndicator={Platform.OS === 'web'}
+      nestedScrollEnabled={true}
     >
       <StatusBar style="auto" />
       

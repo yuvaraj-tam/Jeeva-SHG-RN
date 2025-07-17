@@ -1,90 +1,150 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Platform, Dimensions } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { auth } from './src/services/firebase';
+import { theme } from './src/theme';
 import { Sidebar } from './src/components/ui/Sidebar';
-import LoginScreen from './src/screens/LoginScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
-import LoansScreen from './src/screens/LoansScreen';
 import BorrowersScreen from './src/screens/BorrowersScreen';
+import LoansScreen from './src/screens/LoansScreen';
 import PaymentsScreen from './src/screens/PaymentsScreen';
-import UserInfoScreen from './src/screens/UserInfoScreen';
+import LoanDetailsScreen from './src/screens/LoanDetailsScreen';
 import ReportsScreen from './src/screens/ReportsScreen';
 import RemindersScreen from './src/screens/RemindersScreen';
-import LoanDetailsScreen from './src/screens/LoanDetailsScreen';
-import { theme } from './src/theme';
-import { ReminderService } from './src/services/reminderService';
-import { iframeManager, isInIframe, optimizeFormInputs } from './src/utils/iframeDetection';
-import { auth } from './src/services/firebase';
-import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
-
-interface User {
-  email: string;
-  uid: string;
-}
+import UserInfoScreen from './src/screens/UserInfoScreen';
+import LoginScreen from './src/screens/LoginScreen';
 
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentScreen, setCurrentScreen] = useState('dashboard'); // Changed from 'home' to 'dashboard'
+  const [user, setUser] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [currentScreen, setCurrentScreen] = useState('home');
   const [sidebarVisible, setSidebarVisible] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [loanDetailsId, setLoanDetailsId] = useState<string | null>(null);
+  const [screenParams, setScreenParams] = useState<any>({});
   const [isIframeEnv, setIsIframeEnv] = useState(false);
-  const [authLoading, setAuthLoading] = useState(true);
+
+  // Detect iframe environment and apply fixes
+  useEffect(() => {
+    const detectIframe = () => {
+      try {
+        // Check if we're in an iframe
+        const inIframe = window !== window.parent;
+        setIsIframeEnv(inIframe);
+        
+        if (inIframe) {
+          console.log('Detected iframe environment, applying scrolling fixes...');
+          
+          // Force scrolling to work in iframe
+          const applyIframeScrollingFixes = () => {
+            // Add iframe-specific styles
+            const iframeStyles = `
+              html, body {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                height: auto !important;
+                min-height: 100vh !important;
+              }
+              
+              #root {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                height: auto !important;
+                min-height: 100vh !important;
+              }
+              
+              [data-rn-root="true"] {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                height: auto !important;
+                min-height: 100vh !important;
+              }
+              
+              /* Force all containers to be scrollable */
+              div {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+              }
+              
+              /* React Native Web specific fixes */
+              [class*="ScrollView"] {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                height: auto !important;
+                max-height: none !important;
+              }
+              
+              [style*="flex: 1"] {
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+              }
+            `;
+            
+            // Remove existing iframe styles if any
+            const existingStyle = document.getElementById('iframe-scrolling-fix');
+            if (existingStyle) {
+              existingStyle.remove();
+            }
+            
+            // Add new styles
+            const styleSheet = document.createElement('style');
+            styleSheet.id = 'iframe-scrolling-fix';
+            styleSheet.textContent = iframeStyles;
+            document.head.appendChild(styleSheet);
+            
+            // Force scroll on all ScrollView components
+            const scrollViews = document.querySelectorAll('[class*="ScrollView"]');
+            scrollViews.forEach((element) => {
+              (element as HTMLElement).style.overflowY = 'auto';
+              ((element as HTMLElement).style as any).webkitOverflowScrolling = 'touch';
+            });
+            
+            console.log('Iframe scrolling fixes applied');
+          };
+          
+          // Apply fixes immediately
+          applyIframeScrollingFixes();
+          
+          // Apply fixes after a delay to ensure React Native Web has rendered
+          setTimeout(applyIframeScrollingFixes, 1000);
+          setTimeout(applyIframeScrollingFixes, 2000);
+          
+          // Listen for DOM changes and reapply fixes
+          const observer = new MutationObserver(() => {
+            applyIframeScrollingFixes();
+          });
+          
+          observer.observe(document.body, {
+            childList: true,
+            subtree: true,
+            attributes: true,
+            attributeFilter: ['style', 'class']
+          });
+        }
+      } catch (error) {
+        console.log('Error detecting iframe:', error);
+      }
+    };
+    
+    detectIframe();
+  }, []);
 
   // Firebase Authentication State Listener
   useEffect(() => {
     console.log('Setting up Firebase auth listener...');
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: any | null) => {
       console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
       if (firebaseUser) {
         setUser({
           email: firebaseUser.email || '',
           uid: firebaseUser.uid
         });
-        setIsLoggedIn(true);
       } else {
         setUser(null);
-        setIsLoggedIn(false);
       }
-      setAuthLoading(false);
+      setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
-
-  // Initialize iframe detection and automatic reminders when app starts
-  useEffect(() => {
-    // Detect iframe environment
-    const iframeEnv = isInIframe();
-    setIsIframeEnv(iframeEnv);
-
-    if (iframeEnv) {
-      console.log('App running in iframe environment');
-      // Add mobile menu overlay for iframe mode
-      if (Platform.OS === 'web') {
-        const overlay = document.createElement('div');
-        overlay.className = 'mobile-menu-overlay';
-        overlay.addEventListener('click', () => {
-          setSidebarVisible(false);
-        });
-        document.body.appendChild(overlay);
-      }
-    }
-
-    // Initialize automatic reminders
-    ReminderService.initialize().catch(error => {
-      console.error('Failed to initialize reminder service:', error);
-    });
-
-    // Optimize form inputs for iframe
-    setTimeout(() => {
-      optimizeFormInputs();
-    }, 1000);
-
-    // Cleanup on unmount
-    return () => {
-      ReminderService.stopAutoReminderService();
-    };
   }, []);
 
   // Handle sidebar visibility changes for iframe mode
@@ -118,7 +178,6 @@ export default function App() {
       await auth.signOut();
       // State will be updated by onAuthStateChanged listener
       setCurrentScreen('dashboard');
-      setLoanDetailsId(null);
     } catch (error) {
       console.error('Logout error:', error);
     }
@@ -128,9 +187,9 @@ export default function App() {
     console.log('Navigating to screen:', screen, 'with params:', params);
     setCurrentScreen(screen);
     if (params?.loanId) {
-      setLoanDetailsId(params.loanId);
+      setScreenParams({ loanId: params.loanId });
     } else {
-      setLoanDetailsId(null);
+      setScreenParams({});
     }
 
     // Auto-close sidebar on mobile in iframe mode after navigation
@@ -159,7 +218,7 @@ export default function App() {
       case 'reminders':
         return <RemindersScreen />;
       case 'loanDetails':
-        return <LoanDetailsScreen route={{ params: { loanId: loanDetailsId || '' } }} navigation={{ goBack: () => handleScreenChange('payments') }} />;
+        return <LoanDetailsScreen route={{ params: { loanId: screenParams.loanId || '' } }} navigation={{ goBack: () => handleScreenChange('payments') }} />;
       default:
         return <DashboardScreen />; // Default to dashboard instead of home
     }
@@ -189,7 +248,7 @@ export default function App() {
   };
 
   // Show loading screen while determining auth state
-  if (authLoading) {
+  if (loading) {
     return (
       <View style={styles.container}>
         <StatusBar style="auto" />
@@ -200,7 +259,7 @@ export default function App() {
     );
   }
 
-  if (!isLoggedIn) {
+  if (!user) {
     return (
       <View style={styles.container}>
         <StatusBar style="auto" />
