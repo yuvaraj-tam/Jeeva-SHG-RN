@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test - Jeeva SHG Manager</title>
+</head>
+<body>
+    <h1>Testing JavaScript File</h1>
+    <p>If you see this, the HTML is working.</p>
+    <p>Check the browser console for JavaScript loading status.</p>
+    
+    <script>
+        console.log('Testing JavaScript file loading...');
+        
+        // Try to load the main JavaScript file
+        const script = document.createElement('script');
+        script.src = '_expo/static/js/web/index-87f9edf8881613f50cc916704b50915d.js';
+        script.onload = function() {
+            console.log('✅ JavaScript file loaded successfully!');
+            document.body.innerHTML += '<p style="color: green;">✅ JavaScript file loaded successfully!</p>';
+        };
+        script.onerror = function() {
+            console.error('❌ Failed to load JavaScript file');
+            document.body.innerHTML += '<p style="color: red;">❌ Failed to load JavaScript file</p>';
+        };
+        document.head.appendChild(script);
+    </script>
+</body>
+</html> 

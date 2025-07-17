@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test - File Loading</title>
+</head>
+<body>
+    <h1>Testing File Loading</h1>
+    <div id="status">Loading...</div>
+    
+    <script>
+        console.log('Testing app.js loading...');
+        
+        fetch('js/app.js')
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('status').innerHTML = '✅ app.js found and accessible!';
+                    document.getElementById('status').style.color = 'green';
+                } else {
+                    document.getElementById('status').innerHTML = '❌ app.js not found (404)';
+                    document.getElementById('status').style.color = 'red';
+                }
+            })
+            .catch(error => {
+                document.getElementById('status').innerHTML = '❌ Error loading app.js: ' + error;
+                document.getElementById('status').style.color = 'red';
+            });
+    </script>
+</body>
+</html>
