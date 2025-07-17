@@ -33,7 +33,14 @@
       ]
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "build": {
+        "babel": {
+          "include": ["@expo/vector-icons"]
+        }
+      },
+      "assetPrefix": "./"
     },
     "scheme": "com.jeevashg.manager",
     "plugins": [

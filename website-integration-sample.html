@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeeva Trust - SHG Manager Integration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        .navbar-brand {
+            font-weight: bold;
+            color: #2c3e50 !important;
+        }
+        
+        .nav-link {
+            color: #34495e !important;
+            font-weight: 500;
+        }
+        
+        .nav-link:hover {
+            color: #3498db !important;
+        }
+        
+        .nav-link.active {
+            color: #3498db !important;
+            border-bottom: 2px solid #3498db;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px 12px 0 0 !important;
+            border: none;
+        }
+        
+        .app-iframe {
+            border: none;
+            border-radius: 0 0 12px 12px;
+            width: 100%;
+            min-height: 700px;
+            background: white;
+        }
+        
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 200px;
+        }
+        
+        .feature-card {
+            transition: transform 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .app-iframe {
+                min-height: 600px;
+            }
+            
+            .navbar-nav {
+                text-align: center;
+            }
+        }
+        
+        /* Tablet Responsive */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .app-iframe {
+                min-height: 650px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">
+                <i class="fas fa-heart text-danger"></i> Jeeva Trust
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#home" data-bs-toggle="tab">
+                            <i class="fas fa-home"></i> Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#about" data-bs-toggle="tab">
+                            <i class="fas fa-info-circle"></i> About
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#shg-manager" data-bs-toggle="tab">
+                            <i class="fas fa-users"></i> SHG Manager
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact" data-bs-toggle="tab">
+                            <i class="fas fa-envelope"></i> Contact
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Tab Content -->
+    <div class="container-fluid mt-4">
+        <div class="tab-content">
+            <!-- Home Tab -->
+            <div class="tab-pane fade show active" id="home">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="text-center mb-5">
+                            <h1 class="display-4 text-primary">Welcome to Jeeva Trust</h1>
+                            <p class="lead">Empowering communities through Self-Help Groups</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                                <h5 class="card-title">Community Support</h5>
+                                <p class="card-text">Building strong communities through collaborative efforts and mutual support.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-hand-holding-heart fa-3x text-success mb-3"></i>
+                                <h5 class="card-title">Financial Inclusion</h5>
+                                <p class="card-text">Providing access to financial services and opportunities for all.</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-4">
+                        <div class="card feature-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-chart-line fa-3x text-info mb-3"></i>
+                                <h5 class="card-title">Growth & Development</h5>
+                                <p class="card-text">Supporting sustainable growth and development initiatives.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- About Tab -->
+            <div class="tab-pane fade" id="about">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-info-circle"></i> About Jeeva Trust
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <p>Jeeva Trust is dedicated to empowering communities through Self-Help Groups (SHGs). Our mission is to provide financial inclusion, community support, and sustainable development opportunities.</p>
+                                
+                                <h6>Our Mission:</h6>
+                                <ul>
+                                    <li>Empower communities through collaborative efforts</li>
+                                    <li>Provide access to financial services</li>
+                                    <li>Support sustainable development initiatives</li>
+                                    <li>Build strong, resilient communities</li>
+                                </ul>
+                                
+                                <h6>Our Vision:</h6>
+                                <p>To create a world where every community has access to the resources and support they need to thrive and grow.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SHG Manager Tab -->
+            <div class="tab-pane fade" id="shg-manager">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-users"></i> Jeeva SHG Manager
+                                </h5>
+                            </div>
+                            <div class="card-body p-0">
+                                <!-- Loading Spinner -->
+                                <div id="loading-spinner" class="loading-spinner">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- App iframe - Replace YOUR_APP_URL with actual URL -->
+                                <iframe 
+                                    id="shg-app-iframe"
+                                    src="http://localhost:19006" 
+                                    class="app-iframe"
+                                    style="display: none;"
+                                    onload="hideLoadingSpinner()">
+                                </iframe>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Tab -->
+            <div class="tab-pane fade" id="contact">
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-envelope"></i> Contact Us
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Get in Touch</h6>
+                                        <p><i class="fas fa-envelope text-primary"></i> info@jeevatrust.org</p>
+                                        <p><i class="fas fa-phone text-primary"></i> +91 1234567890</p>
+                                        <p><i class="fas fa-map-marker-alt text-primary"></i> Chennai, Tamil Nadu, India</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Follow Us</h6>
+                                        <p><i class="fab fa-facebook text-primary"></i> Facebook</p>
+                                        <p><i class="fab fa-twitter text-primary"></i> Twitter</p>
+                                        <p><i class="fab fa-linkedin text-primary"></i> LinkedIn</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Hide loading spinner when iframe loads
+        function hideLoadingSpinner() {
+            document.getElementById('loading-spinner').style.display = 'none';
+            document.getElementById('shg-app-iframe').style.display = 'block';
+        }
+        
+        // Show loading spinner when switching to SHG Manager tab
+        document.addEventListener('DOMContentLoaded', function() {
+            const shgManagerLink = document.querySelector('a[href="#shg-manager"]');
+            const iframe = document.getElementById('shg-app-iframe');
+            
+            shgManagerLink.addEventListener('click', function() {
+                // Show loading spinner
+                document.getElementById('loading-spinner').style.display = 'flex';
+                iframe.style.display = 'none';
+                
+                // Reload iframe to ensure fresh state
+                setTimeout(() => {
+                    iframe.src = iframe.src;
+                }, 100);
+            });
+        });
+        
+        // Handle iframe load errors
+        document.getElementById('shg-app-iframe').addEventListener('error', function() {
+            document.getElementById('loading-spinner').innerHTML = 
+                '<div class="alert alert-danger">Failed to load SHG Manager. Please try again later.</div>';
+        });
+    </script>
+</body>
+</html> 
