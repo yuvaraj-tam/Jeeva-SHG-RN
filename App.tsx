@@ -14,6 +14,8 @@ import LoanDetailsScreen from './src/screens/LoanDetailsScreen';
 import { theme } from './src/theme';
 import { ReminderService } from './src/services/reminderService';
 import { iframeManager, isInIframe, optimizeFormInputs } from './src/utils/iframeDetection';
+import { auth } from './src/services/firebase';
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
 interface User {
   email: string;
@@ -27,6 +29,28 @@ export default function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loanDetailsId, setLoanDetailsId] = useState<string | null>(null);
   const [isIframeEnv, setIsIframeEnv] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  // Firebase Authentication State Listener
+  useEffect(() => {
+    console.log('Setting up Firebase auth listener...');
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser: FirebaseUser | null) => {
+      console.log('Auth state changed:', firebaseUser ? 'User logged in' : 'User logged out');
+      if (firebaseUser) {
+        setUser({
+          email: firebaseUser.email || '',
+          uid: firebaseUser.uid
+        });
+        setIsLoggedIn(true);
+      } else {
+        setUser(null);
+        setIsLoggedIn(false);
+      }
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   // Initialize iframe detection and automatic reminders when app starts
   useEffect(() => {
@@ -82,19 +106,22 @@ export default function App() {
   }, [sidebarVisible, isIframeEnv]);
 
   const handleLogin = (credentials: any) => {
-    console.log('Login attempted with:', credentials);
-    // Mock login - in real app, validate credentials
-    setUser({ email: credentials.username, uid: 'user123' });
-    setIsLoggedIn(true);
-    setCurrentScreen('dashboard'); // Set to dashboard after login
+    console.log('Login handled by Firebase auth - state will update via onAuthStateChanged');
+    // Authentication is now handled by Firebase in LoginScreen
+    // The onAuthStateChanged listener will update the app state
+    setCurrentScreen('dashboard');
   };
 
-  const handleLogout = () => {
-    console.log('Logout called');
-    setUser(null);
-    setIsLoggedIn(false);
-    setCurrentScreen('dashboard'); // Reset to dashboard instead of home
-    setLoanDetailsId(null);
+  const handleLogout = async () => {
+    console.log('Logout called - signing out from Firebase');
+    try {
+      await auth.signOut();
+      // State will be updated by onAuthStateChanged listener
+      setCurrentScreen('dashboard');
+      setLoanDetailsId(null);
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
 
   const handleScreenChange = (screen: string, params?: any) => {
@@ -160,6 +187,18 @@ export default function App() {
         return 'Dashboard';
     }
   };
+
+  // Show loading screen while determining auth state
+  if (authLoading) {
+    return (
+      <View style={styles.container}>
+        <StatusBar style="auto" />
+        <View style={styles.loadingContainer}>
+          <Text style={styles.loadingText}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
 
   if (!isLoggedIn) {
     return (
@@ -271,6 +310,17 @@ const styles = StyleSheet.create({
   },
   userEmailIframe: {
     fontSize: Platform.OS === 'web' ? 14 : theme.font.size,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: theme.colors.background,
+  },
+  loadingText: {
+    fontSize: theme.font.sizeHeading,
+    color: theme.colors.text,
+    fontFamily: theme.font.family,
   },
   screenContainer: {
     flex: 1,

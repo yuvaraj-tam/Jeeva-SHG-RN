@@ -98,8 +98,15 @@ export default function BorrowersScreen({ navigation }: any) {
   };
 
   const handleAddBorrower = () => {
-    setFormData({});
-    setShowAddBorrowerModal(true);
+    console.log('handleAddBorrower called');
+    console.log('Current showAddBorrowerModal state:', showAddBorrowerModal);
+    try {
+      setFormData({});
+      setShowAddBorrowerModal(true);
+      console.log('Modal state set to true');
+    } catch (error) {
+      console.error('Error in handleAddBorrower:', error);
+    }
   };
 
   const handleSaveBorrower = async () => {

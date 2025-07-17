@@ -49,6 +49,12 @@ export const Modal: React.FC<ModalProps> = ({
   const [isMobile, setIsMobile] = useState(false);
   const [isIframe, setIsIframe] = useState(false);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('Modal visibility changed:', visible);
+    console.log('Modal size:', size);
+  }, [visible, size]);
+
   useEffect(() => {
     const updateDimensions = () => {
       const dims = Dimensions.get('window');
