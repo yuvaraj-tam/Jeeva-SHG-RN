@@ -13,6 +13,7 @@ import RemindersScreen from './src/screens/RemindersScreen';
 import LoanDetailsScreen from './src/screens/LoanDetailsScreen';
 import { theme } from './src/theme';
 import { ReminderService } from './src/services/reminderService';
+import { iframeManager, isInIframe, optimizeFormInputs } from './src/utils/iframeDetection';
 
 interface User {
   email: string;
@@ -25,18 +26,60 @@ export default function App() {
   const [sidebarVisible, setSidebarVisible] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [loanDetailsId, setLoanDetailsId] = useState<string | null>(null);
+  const [isIframeEnv, setIsIframeEnv] = useState(false);
 
-  // Initialize automatic reminders when app starts
+  // Initialize iframe detection and automatic reminders when app starts
   useEffect(() => {
+    // Detect iframe environment
+    const iframeEnv = isInIframe();
+    setIsIframeEnv(iframeEnv);
+
+    if (iframeEnv) {
+      console.log('App running in iframe environment');
+      // Add mobile menu overlay for iframe mode
+      if (Platform.OS === 'web') {
+        const overlay = document.createElement('div');
+        overlay.className = 'mobile-menu-overlay';
+        overlay.addEventListener('click', () => {
+          setSidebarVisible(false);
+        });
+        document.body.appendChild(overlay);
+      }
+    }
+
+    // Initialize automatic reminders
     ReminderService.initialize().catch(error => {
       console.error('Failed to initialize reminder service:', error);
     });
+
+    // Optimize form inputs for iframe
+    setTimeout(() => {
+      optimizeFormInputs();
+    }, 1000);
 
     // Cleanup on unmount
     return () => {
       ReminderService.stopAutoReminderService();
     };
   }, []);
+
+  // Handle sidebar visibility changes for iframe mode
+  useEffect(() => {
+    if (Platform.OS === 'web' && isIframeEnv) {
+      const overlay = document.querySelector('.mobile-menu-overlay');
+      const sidebar = document.querySelector('.sidebar');
+      
+      if (overlay && sidebar) {
+        if (sidebarVisible) {
+          overlay.classList.add('active');
+          sidebar.classList.add('mobile-open');
+        } else {
+          overlay.classList.remove('active');
+          sidebar.classList.remove('mobile-open');
+        }
+      }
+    }
+  }, [sidebarVisible, isIframeEnv]);
 
   const handleLogin = (credentials: any) => {
     console.log('Login attempted with:', credentials);
@@ -61,6 +104,14 @@ export default function App() {
       setLoanDetailsId(params.loanId);
     } else {
       setLoanDetailsId(null);
+    }
+
+    // Auto-close sidebar on mobile in iframe mode after navigation
+    if (isIframeEnv && Platform.OS === 'web') {
+      const isMobile = window.innerWidth < 768;
+      if (isMobile && sidebarVisible) {
+        setSidebarVisible(false);
+      }
     }
   };
 
@@ -131,11 +182,15 @@ export default function App() {
         onLogout={handleLogout}
       />
       
-      <View style={[styles.mainContent, sidebarVisible && styles.mainContentShifted]}>
+      <View style={[
+        styles.mainContent, 
+        sidebarVisible && styles.mainContentShifted,
+        isIframeEnv && styles.mainContentIframe
+      ]}>
         <View style={styles.header}>
           <TouchableOpacity 
             onPress={() => setSidebarVisible(!sidebarVisible)}
-            style={styles.menuButton}
+            style={[styles.menuButton, isIframeEnv && styles.menuButtonIframe]}
           >
             <Text style={styles.menuIcon}>☰</Text>
           </TouchableOpacity>
@@ -145,11 +200,13 @@ export default function App() {
           </Text>
           
           <View style={styles.headerRight}>
-            <Text style={styles.userEmail}>{user?.email}</Text>
+            <Text style={[styles.userEmail, isIframeEnv && styles.userEmailIframe]}>
+              {user?.email}
+            </Text>
           </View>
         </View>
         
-        <View style={styles.screenContainer}>
+        <View style={[styles.screenContainer, isIframeEnv && styles.screenContainerIframe]}>
           {renderScreen()}
         </View>
       </View>
@@ -169,6 +226,10 @@ const styles = StyleSheet.create({
   mainContentShifted: {
     marginLeft: Platform.OS === 'web' ? 280 : 0,
   },
+  mainContentIframe: {
+    // Iframe-specific styles
+    ...(Platform.OS === 'web' && { minHeight: '100vh' as any }),
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -182,6 +243,12 @@ const styles = StyleSheet.create({
   },
   menuButton: {
     padding: theme.spacing.sm,
+  },
+  menuButtonIframe: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   menuIcon: {
     fontSize: 20,
@@ -202,7 +269,13 @@ const styles = StyleSheet.create({
     color: theme.colors.textSecondary,
     fontFamily: theme.font.family,
   },
+  userEmailIframe: {
+    fontSize: Platform.OS === 'web' ? 14 : theme.font.size,
+  },
   screenContainer: {
     flex: 1,
+  },
+  screenContainerIframe: {
+    paddingHorizontal: Platform.OS === 'web' ? 10 : theme.spacing.md,
   },
 });

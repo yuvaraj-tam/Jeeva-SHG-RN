@@ -421,6 +421,7 @@ export default function BorrowersScreen({ navigation }: any) {
       <Modal
         visible={showAddBorrowerModal}
         onClose={() => setShowAddBorrowerModal(false)}
+        size="large"
       >
         <ModalHeader
           title="Add New Borrower"
@@ -543,7 +544,7 @@ export default function BorrowersScreen({ navigation }: any) {
       />
 
       {showBorrowerDetails && (
-        <Modal visible onClose={closeBorrowerDetails}>
+        <Modal visible onClose={closeBorrowerDetails} size="medium">
           <ModalHeader title={`Borrower Details: ${showBorrowerDetails.borrower.name}`} onClose={closeBorrowerDetails} />
           <ModalContent>
             <Text style={styles.sectionSubtitle}>Loans and Payment Status (This Month)</Text>

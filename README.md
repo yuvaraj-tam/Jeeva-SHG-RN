@@ -1,199 +1,109 @@
 # Jeeva SHG Manager
 
-A comprehensive React Native mobile application for Self-Help Group (SHG) management, built with Expo and Firebase.
+A React Native Self-Help Group (SHG) management system with Firebase integration for managing loans, borrowers, payments, and reminders.
 
 ## 🚀 Features
 
-### Core Functionality
-- **User Management**: Complete user profiles with contact information
-- **Loan Management**: Create, track, and manage loans with EMI calculations
-- **Payment Tracking**: Monitor EMI payments and due dates
-- **Reports & Analytics**: Generate comprehensive reports and analytics
-- **Reminders & Notifications**: Automated payment reminders
-- **Excel Import/Export**: Import/export data via Excel files
-- **Firebase Integration**: Secure cloud-based data storage
-- **Google Sign-in**: Easy authentication
+- **User Authentication**: Secure login with Google Sign-In
+- **Borrower Management**: Add, edit, and track borrower information
+- **Loan Management**: Create and manage loan records with payment schedules
+- **Payment Tracking**: Record and monitor payments with automated calculations
+- **Reminders**: Set and manage payment reminders
+- **Reports**: Generate comprehensive financial reports
+- **Web Integration**: Deployable to web and integrable with Wix websites
 
-### User Interface
-- **Modern Material Design**: Clean, intuitive interface
-- **Responsive Design**: Works on all screen sizes
-- **Collapsible Sidebar**: Easy navigation
-- **Dark/Light Theme**: User preference support
-- **Offline Support**: Works without internet connection
+## 📱 Platforms
 
-## 📱 App Information
+- React Native (iOS/Android)
+- Web (Expo Web)
+- Wix Website Integration
 
-- **Package Name**: com.jeevashg.manager
-- **App Name**: Jeeva SHG Manager
-- **Version**: 1.0.0
-- **Platform**: Android (iOS support available)
+## 🏗️ Project Structure
 
-## 🛠️ Technology Stack
+```
+├── src/
+│   ├── components/        # Reusable UI components
+│   ├── screens/          # Application screens
+│   ├── services/         # Firebase and API services
+│   ├── types/           # TypeScript type definitions
+│   └── utils/           # Utility functions
+├── android/             # Android-specific files
+├── assets/             # Images and static assets
+├── docs/               # Documentation and guides
+├── scripts/            # Deployment and build scripts
+└── firebase-admin-tools/ # Firebase admin utilities
+```
 
-- **Framework**: React Native with Expo
-- **Language**: TypeScript
-- **Backend**: Firebase (Authentication, Firestore)
-- **UI Components**: Custom Material Design components
-- **Navigation**: React Navigation
-- **State Management**: React Hooks
-- **File Handling**: Excel.js for spreadsheet operations
+## 🔧 Setup & Installation
 
-## 📋 Prerequisites
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/yuvaraj-tam/Jeeva-SHG-RN.git
+   cd Jeeva-SHG-RN
+   ```
 
-### For Development
-- Node.js (v18 or higher)
-- npm or yarn
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Firebase Configuration**
+   - Follow the guide in `docs/FIREBASE_WEB_CONFIG_GUIDE.md`
+   - Set up Google Sign-In using `docs/GOOGLE_SIGNIN_SETUP.md`
+
+4. **Run the application**
+   ```bash
+   # For web development
+   npx expo start --web
+   
+   # For mobile development
+   npx expo start
+   
+   # For Android build
+   ./scripts/build-android.sh
+   ```
+
+## 🌐 Web Deployment
+
+The application can be deployed to GitHub Pages and integrated with Wix websites:
+
+```bash
+# Deploy to GitHub Pages
+./scripts/deploy-to-github-pages.sh
+```
+
+For detailed deployment instructions, see `docs/DEPLOYMENT_GUIDE.md`.
+
+## 📖 Documentation
+
+- **Wix Integration**: `docs/WIX_INTEGRATION_GUIDE.md`
+- **Firebase Setup**: `docs/FIREBASE_WEB_CONFIG_GUIDE.md`
+- **Google Sign-In**: `docs/GOOGLE_SIGNIN_SETUP.md`
+- **Security Guide**: `docs/FIREBASE_SECURITY_FIX.md`
+- **Modal System**: `docs/MODAL_ENHANCEMENT_GUIDE.md`
+
+## 🔐 Security
+
+This project includes comprehensive security measures:
+- Firebase service account keys are properly secured
+- Authentication flows are implemented with best practices
+- Sensitive files are excluded from version control
+
+See `docs/SECURITY_INCIDENT_RESPONSE.md` for security procedures.
+
+## 🛠️ Development
+
+### Prerequisites
+- Node.js 16+
 - Expo CLI
-- Android Studio (for local builds)
+- Android Studio (for Android development)
+- Firebase project with web app configured
 
-### For Production Build
-- Expo account (for cloud builds)
-- OR Android Studio with Java 17/21 (for local builds)
-
-## 🚀 Quick Start
-
-### Development
-```bash
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-
-# Run on Android
-npm run android
-
-# Run on iOS
-npm run ios
-
-# Run on Web
-npm run web
-```
-
-### Production Build
-```bash
-# Use the build script (Recommended)
-./build-android.sh
-
-# Or build manually
-npm run build:android
-```
-
-## 📦 Build Options
-
-### 1. Expo EAS Cloud Build (Recommended)
-- No local setup required
-- Builds in the cloud
-- Automatic APK generation
-- Email notification when ready
-
-### 2. Local Android Build
-- Requires Android Studio
-- Requires Java 17 or 21
-- Faster iteration for development
-- Full control over build process
-
-### 3. Development Build
-- For testing and development
-- Includes development tools
-- Hot reloading enabled
-
-## 🔧 Configuration
-
-### App Configuration (`app.json`)
-- Package name and version
-- Permissions (Internet, Storage, Phone, SMS)
-- Icons and splash screen
-- Platform-specific settings
-
-### Firebase Configuration
-- Authentication setup
-- Firestore database
-- Google Sign-in integration
-
-## 📊 Data Structure
-
-### Users
-- Personal information
-- Contact details
-- Financial information
-- Loan history
-
-### Loans
-- Loan amount and terms
-- EMI calculations
-- Payment schedule
-- Status tracking
-
-### Payments
-- EMI payment records
-- Due dates and reminders
-- Payment status
-- Overdue tracking
-
-## 🔐 Security Features
-
-- Firebase Authentication
-- Secure data storage
-- Input validation
-- Error handling
-- Offline data protection
-
-## 📈 Analytics & Reporting
-
-- Loan portfolio overview
-- Payment analytics
-- User statistics
-- Export capabilities
-- Custom report generation
-
-## 🎨 UI/UX Features
-
-- Material Design components
-- Responsive layout
-- Accessibility support
-- Intuitive navigation
-- Visual feedback
-- Loading states
-
-## 📱 Installation
-
-### For End Users
-1. Download the APK file
-2. Enable "Install from unknown sources" in Android settings
-3. Install the APK
-4. Open the app and sign in
-
-### For Developers
-1. Clone the repository
-2. Install dependencies: `npm install`
-3. Configure Firebase (see Firebase setup guide)
-4. Run the development server: `npm start`
-
-## 🔄 Updates
-
-### Version Management
-- Semantic versioning
-- Automatic update notifications
-- Backward compatibility
-- Migration scripts
-
-## 📞 Support
-
-### Documentation
-- Comprehensive code comments
-- API documentation
-- User guides
-- Troubleshooting guides
-
-### Contact
-- Technical support available
-- Bug reporting system
-- Feature request tracking
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Key Dependencies
+- React Native / Expo
+- Firebase (Auth, Firestore)
+- React Navigation
+- TypeScript
 
 ## 🤝 Contributing
 
@@ -203,25 +113,17 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 4. Test thoroughly
 5. Submit a pull request
 
-## 🎯 Roadmap
+## 📄 License
 
-### Upcoming Features
-- [ ] Push notifications
-- [ ] Offline sync
-- [ ] Multi-language support
-- [ ] Advanced analytics
-- [ ] Integration with banking APIs
-- [ ] WhatsApp integration
-- [ ] Voice commands
-- [ ] Biometric authentication
+This project is licensed under the MIT License.
 
-### Performance Improvements
-- [ ] Code splitting
-- [ ] Lazy loading
-- [ ] Image optimization
-- [ ] Database indexing
-- [ ] Caching strategies
+## 🆘 Support
+
+For issues and questions:
+1. Check the documentation in the `docs/` folder
+2. Review existing GitHub issues
+3. Create a new issue with detailed information
 
 ---
 
-**Built with ❤️ for Self-Help Groups** 
+**Live Demo**: [https://www.jeevatrust.org/shg-manager](https://www.jeevatrust.org/shg-manager) 
