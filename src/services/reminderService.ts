@@ -142,13 +142,49 @@ export class ReminderService {
 
   static async sendSMS(phoneNumber: string, message: string): Promise<boolean> {
     try {
-      // In a real app, integrate with SMS service like Twilio, AWS SNS, etc.
-      console.log(`SMS to ${phoneNumber}: ${message}`);
+      // Real SMS integration using Twilio (most popular)
+      // You can also use AWS SNS, MessageBird, or other services
       
-      // Mock SMS sending
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // For now, we'll use a simple HTTP API approach
+      // Replace with your actual SMS service credentials
+      const SMS_API_URL = process.env.EXPO_PUBLIC_SMS_API_URL || 'https://api.twilio.com/2010-04-01/Accounts';
+      const SMS_ACCOUNT_SID = process.env.EXPO_PUBLIC_SMS_ACCOUNT_SID || '';
+      const SMS_AUTH_TOKEN = process.env.EXPO_PUBLIC_SMS_AUTH_TOKEN || '';
+      const SMS_FROM_NUMBER = process.env.EXPO_PUBLIC_SMS_FROM_NUMBER || '';
       
-      return true;
+      if (!SMS_ACCOUNT_SID || !SMS_AUTH_TOKEN || !SMS_FROM_NUMBER) {
+        console.warn('SMS credentials not configured. Using mock SMS.');
+        // Fallback to mock SMS for development
+        console.log(`[MOCK SMS] To ${phoneNumber}: ${message}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return true;
+      }
+
+      // Format phone number
+      const formattedNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
+      
+      // Twilio SMS API call
+      const response = await fetch(`${SMS_API_URL}/${SMS_ACCOUNT_SID}/Messages.json`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Basic ${btoa(`${SMS_ACCOUNT_SID}:${SMS_AUTH_TOKEN}`)}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({
+          From: SMS_FROM_NUMBER,
+          To: formattedNumber,
+          Body: message,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('SMS sent successfully:', result.sid);
+        return true;
+      } else {
+        console.error('SMS sending failed:', response.status, response.statusText);
+        return false;
+      }
     } catch (error) {
       console.error('Failed to send SMS:', error);
       return false;
@@ -157,13 +193,50 @@ export class ReminderService {
 
   static async sendEmail(email: string, subject: string, message: string): Promise<boolean> {
     try {
-      // In a real app, integrate with email service like SendGrid, AWS SES, etc.
-      console.log(`Email to ${email}: ${subject} - ${message}`);
+      // Real email integration using SendGrid, AWS SES, or similar
+      const EMAIL_API_URL = process.env.EXPO_PUBLIC_EMAIL_API_URL || 'https://api.sendgrid.com/v3/mail/send';
+      const EMAIL_API_KEY = process.env.EXPO_PUBLIC_EMAIL_API_KEY || '';
+      const EMAIL_FROM = process.env.EXPO_PUBLIC_EMAIL_FROM || 'noreply@jeevatrust.org';
       
-      // Mock email sending
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return true;
+      if (!EMAIL_API_KEY) {
+        console.warn('Email API key not configured. Using mock email.');
+        // Fallback to mock email for development
+        console.log(`[MOCK EMAIL] To ${email}: ${subject} - ${message}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return true;
+      }
+
+      // SendGrid email API call
+      const response = await fetch(EMAIL_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${EMAIL_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          personalizations: [
+            {
+              to: [{ email }],
+              subject,
+            },
+          ],
+          from: { email: EMAIL_FROM },
+          content: [
+            {
+              type: 'text/plain',
+              value: message,
+            },
+          ],
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Email sent successfully');
+        return true;
+      } else {
+        console.error('Email sending failed:', response.status, response.statusText);
+        return false;
+      }
     } catch (error) {
       console.error('Failed to send email:', error);
       return false;
@@ -201,15 +274,20 @@ export class ReminderService {
       // Format phone number (remove spaces, dashes, and ensure country code)
       const formattedNumber = phoneNumber.replace(/[\s\-\(\)]/g, '');
       
-      console.log(`WhatsApp to ${formattedNumber}: ${message}`);
+      // Real WhatsApp integration using Meta WhatsApp Cloud API
+      const WHATSAPP_API_URL = 'https://graph.facebook.com/v18.0';
+      const PHONE_NUMBER_ID = settings.whatsAppFromNumber || '';
+      const ACCESS_TOKEN = settings.whatsAppApiKey || '';
       
-      // Integration options:
-      // 1. WhatsApp Business API (Official)
-      // 2. Twilio WhatsApp API
-      // 3. Meta WhatsApp Cloud API
-      // 4. Third-party services like MessageBird, etc.
-      
-      // Example with WhatsApp Business API (replace with actual implementation)
+      if (!PHONE_NUMBER_ID || !ACCESS_TOKEN) {
+        console.warn('WhatsApp credentials not configured. Using mock WhatsApp.');
+        // Fallback to mock WhatsApp for development
+        console.log(`[MOCK WHATSAPP] To ${formattedNumber}: ${message}`);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        return true;
+      }
+
+      // WhatsApp Cloud API payload
       const whatsappPayload = {
         messaging_product: "whatsapp",
         to: formattedNumber,
@@ -219,52 +297,28 @@ export class ReminderService {
         }
       };
 
-      // Mock API call - replace with actual WhatsApp API
-      await this.sendWhatsAppAPIRequest(whatsappPayload, settings);
-      
-      return true;
+      // Meta WhatsApp Cloud API call
+      const response = await fetch(`${WHATSAPP_API_URL}/${PHONE_NUMBER_ID}/messages`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${ACCESS_TOKEN}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(whatsappPayload),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        console.log('WhatsApp message sent successfully:', result.messages?.[0]?.id);
+        return true;
+      } else {
+        const errorData = await response.json();
+        console.error('WhatsApp sending failed:', response.status, errorData);
+        return false;
+      }
     } catch (error) {
       console.error('Failed to send WhatsApp message:', error);
       return false;
-    }
-  }
-
-  // NEW: WhatsApp API request handler
-  private static async sendWhatsAppAPIRequest(payload: any, settings: ReminderSettings): Promise<void> {
-    try {
-      // Mock implementation - replace with actual API calls
-      
-      // Option 1: WhatsApp Business Cloud API
-      // const response = await fetch(`https://graph.facebook.com/v18.0/${settings.whatsAppFromNumber}/messages`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Bearer ${settings.whatsAppApiKey}`,
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(payload),
-      // });
-
-      // Option 2: Twilio WhatsApp API
-      // const response = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${TWILIO_ACCOUNT_SID}/Messages.json`, {
-      //   method: 'POST',
-      //   headers: {
-      //     'Authorization': `Basic ${btoa(`${TWILIO_ACCOUNT_SID}:${settings.whatsAppApiKey}`)}`,
-      //     'Content-Type': 'application/x-www-form-urlencoded',
-      //   },
-      //   body: new URLSearchParams({
-      //     From: `whatsapp:${settings.whatsAppFromNumber}`,
-      //     To: `whatsapp:${payload.to}`,
-      //     Body: payload.text.body,
-      //   }),
-      // });
-
-      // Mock delay to simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      console.log('WhatsApp API request sent successfully (mocked)');
-    } catch (error) {
-      console.error('WhatsApp API request failed:', error);
-      throw error;
     }
   }
 
