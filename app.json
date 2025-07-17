@@ -39,8 +39,7 @@
         "babel": {
           "include": ["@expo/vector-icons"]
         }
-      },
-      "assetPrefix": "./"
+      }
     },
     "scheme": "com.jeevashg.manager",
     "plugins": [
