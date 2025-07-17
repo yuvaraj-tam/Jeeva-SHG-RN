@@ -444,9 +444,69 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
       const emiAmount = loan.emiAmount || 0;
       const startDate = loan.startDate ? parseISO(loan.startDate) : new Date();
       
-      // Generate payments for each EMI and each borrower
+      // Get current date info
+      const now = new Date();
+      const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+      const currentYear = now.getFullYear();
+      
+      // Calculate next month
+      let nextMonth = currentMonth + 1;
+      let nextYear = currentYear;
+      if (nextMonth > 12) {
+        nextMonth = 1;
+        nextYear = currentYear + 1;
+      }
+      
+      // Find which EMI numbers correspond to current and next month
+      let currentMonthEmi = -1;
+      let nextMonthEmi = -1;
+      
+      // Calculate EMI numbers for current and next month
       for (let i = 1; i <= totalEmis; i++) {
         const dueDate = addMonths(startDate, i - 1);
+        const dueMonth = dueDate.getMonth() + 1;
+        const dueYear = dueDate.getFullYear();
+        
+        if (dueMonth === currentMonth && dueYear === currentYear) {
+          currentMonthEmi = i;
+        } else if (dueMonth === nextMonth && dueYear === nextYear) {
+          nextMonthEmi = i;
+        }
+      }
+      
+      // Generate payments only for current month and next month
+      const emisToGenerate: number[] = [];
+      if (currentMonthEmi !== -1) emisToGenerate.push(currentMonthEmi);
+      if (nextMonthEmi !== -1) emisToGenerate.push(nextMonthEmi);
+      
+      if (emisToGenerate.length === 0) {
+        Alert.alert('No Payments to Generate', 'No payments are due for current month or next month.');
+        return;
+      }
+      
+      // Check if payments already exist for these months
+      const existingPayments = loanPayments;
+      const existingMonths = new Set();
+      existingPayments.forEach(p => {
+        existingMonths.add(`${p.month}-${p.year}`);
+      });
+      
+      const monthsToGenerate: { emiNum: number; dueDate: Date }[] = [];
+      emisToGenerate.forEach(emiNum => {
+        const dueDate = addMonths(startDate, emiNum - 1);
+        const monthKey = `${dueDate.getMonth() + 1}-${dueDate.getFullYear()}`;
+        if (!existingMonths.has(monthKey)) {
+          monthsToGenerate.push({ emiNum, dueDate });
+        }
+      });
+      
+      if (monthsToGenerate.length === 0) {
+        Alert.alert('Payments Already Exist', 'Payments for current month and next month already exist for this loan.');
+        return;
+      }
+      
+      // Generate payments for current and next month only
+      for (const { emiNum, dueDate } of monthsToGenerate) {
         for (const borrowerId of loan.borrowerIds || []) {
           const amount = loan.emiAmounts && loan.emiAmounts[borrowerId] !== undefined ? loan.emiAmounts[borrowerId] : emiAmount;
           await PaymentService.addPayment({
@@ -458,11 +518,17 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
             reminderSent: false,
             month: dueDate.getMonth() + 1,
             year: dueDate.getFullYear(),
-            emiNumber: i,
+            emiNumber: emiNum,
           });
         }
       }
-      Alert.alert('Success', `Generated ${totalEmis} payments for all borrowers for this loan!`);
+      
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const generatedMonths = monthsToGenerate.map(({ dueDate }) => 
+        `${monthNames[dueDate.getMonth()]} ${dueDate.getFullYear()}`
+      ).join(' and ');
+      
+      Alert.alert('Success', `Generated payments for ${generatedMonths} for all borrowers!`);
     } catch (error) {
       console.error('Error generating payments:', error);
       Alert.alert('Error', 'Failed to generate payments. Please try again.');
