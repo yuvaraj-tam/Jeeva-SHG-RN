@@ -12,6 +12,10 @@ fi
 
 echo "✅ Found dist folder"
 
+# Fix GitHub Pages paths
+echo "🔧 Fixing asset paths for GitHub Pages..."
+./scripts/fix-github-pages-paths.sh
+
 # Create a temporary directory for GitHub Pages
 TEMP_DIR="jeeva-shg-manager-web"
 rm -rf $TEMP_DIR
