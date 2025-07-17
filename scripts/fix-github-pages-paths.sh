@@ -41,4 +41,9 @@ find dist -name "*.js" -type f | while read -r file; do
 done
 
 echo "✅ Fixed asset paths in JavaScript files"
+
+# Create a .nojekyll file to ensure GitHub Pages serves all files
+echo "📄 Creating .nojekyll file..."
+touch dist/.nojekyll
+
 echo "🎉 GitHub Pages paths fixed successfully!" 
