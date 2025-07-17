@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <title>Jeeva SHG Manager</title>
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      /* These styles make the body full-height */
+      html,
+      body {
+        height: 100%;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      /* These styles disable body scrolling if you are using <ScrollView> */
+      body {
+        overflow: hidden;
+      }
+      /* These styles make the root element full-height */
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      
+      /* Force scrolling on all elements */
+      * {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      
+      /* React Native Web specific fixes */
+      [data-rn-root] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      
+      [class*="ScrollView"] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      
+      [class*="View"] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+      
+      /* Force scroll on all div elements */
+      div {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+    </style>
+  <link rel="icon" href="./favicon.ico" /></head>
+
+  <body>
+    <!-- Use static rendering with Expo Router to support running without JavaScript. -->
+    <noscript>
+      You need to enable JavaScript to run this app.
+    </noscript>
+    <!-- The root element for your Expo app. -->
+    <div id="root"></div>
+  <script src="./static/js/web/index-d3991442c5d1e88342d809f1d90f4d15.js" defer></script>
+  
+  <script>
+    // Aggressive iframe scrolling fix
+    (function() {
+      console.log('Applying aggressive iframe scrolling fixes...');
+      
+      function applyScrollingFixes() {
+        // Force scrolling on all elements
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(element => {
+          if (element.style) {
+            element.style.overflowY = 'auto';
+            element.style.overflowX = 'hidden';
+            element.style.webkitOverflowScrolling = 'touch';
+          }
+        });
+        
+        // Force body and html scrolling
+        document.body.style.overflowY = 'auto';
+        document.body.style.overflowX = 'hidden';
+        document.body.style.webkitOverflowScrolling = 'touch';
+        document.body.style.height = 'auto';
+        document.body.style.minHeight = '100vh';
+        
+        document.documentElement.style.overflowY = 'auto';
+        document.documentElement.style.overflowX = 'hidden';
+        document.documentElement.style.webkitOverflowScrolling = 'touch';
+        document.documentElement.style.height = 'auto';
+        document.documentElement.style.minHeight = '100vh';
+        
+        // Force root element scrolling
+        const root = document.getElementById('root');
+        if (root) {
+          root.style.overflowY = 'auto';
+          root.style.overflowX = 'hidden';
+          root.style.webkitOverflowScrolling = 'touch';
+          root.style.height = 'auto';
+          root.style.minHeight = '100vh';
+        }
+        
+        console.log('Scrolling fixes applied');
+      }
+      
+      // Apply fixes immediately
+      applyScrollingFixes();
+      
+      // Apply fixes multiple times
+      setTimeout(applyScrollingFixes, 100);
+      setTimeout(applyScrollingFixes, 500);
+      setTimeout(applyScrollingFixes, 1000);
+      setTimeout(applyScrollingFixes, 2000);
+      setTimeout(applyScrollingFixes, 5000);
+      
+      // Listen for DOM changes
+      const observer = new MutationObserver(applyScrollingFixes);
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        attributes: true,
+        attributeFilter: ['style', 'class']
+      });
+      
+      // Test scrolling
+      setTimeout(() => {
+        window.scrollTo(0, 1);
+        window.scrollTo(0, 0);
+        console.log('Scroll test completed');
+      }, 1000);
+    })();
+  </script>
+</body>
+</html>
