@@ -29,4 +29,16 @@ else
     exit 1
 fi
 
+# Fix absolute paths in JavaScript files
+echo "📝 Fixing paths in JavaScript files..."
+find dist -name "*.js" -type f | while read -r file; do
+    echo "  🔧 Fixing $file"
+    # Replace absolute _expo paths with relative paths in JS files
+    sed -i.bak 's|"/_expo/|"./_expo/|g' "$file"
+    sed -i.bak "s|'/_expo/|'./_expo/|g" "$file"
+    # Remove backup files
+    rm -f "$file.bak"
+done
+
+echo "✅ Fixed asset paths in JavaScript files"
 echo "🎉 GitHub Pages paths fixed successfully!" 
