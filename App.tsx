@@ -32,85 +32,143 @@ export default function App() {
         setIsIframeEnv(inIframe);
         
         if (inIframe) {
-          console.log('Detected iframe environment, applying scrolling fixes...');
+          console.log('Detected iframe environment, applying aggressive scrolling fixes...');
           
-          // Force scrolling to work in iframe
-          const applyIframeScrollingFixes = () => {
-            // Add iframe-specific styles
-            const iframeStyles = `
-              html, body {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                height: auto !important;
-                min-height: 100vh !important;
+          // Aggressive scrolling fix for iframe
+          const applyAggressiveIframeScrollingFixes = () => {
+            // Remove any existing overflow restrictions
+            const elements = document.querySelectorAll('*');
+            elements.forEach((element) => {
+              const el = element as HTMLElement;
+              if (el.style) {
+                // Force scrolling on all elements
+                el.style.overflowY = 'auto';
+                el.style.overflowX = 'hidden';
+                (el.style as any).webkitOverflowScrolling = 'touch';
+                
+                // Remove any height restrictions that might prevent scrolling
+                if (el.style.height === '100vh' || el.style.height === '100%') {
+                  el.style.height = 'auto';
+                  el.style.minHeight = '100vh';
+                }
+                
+                // Force flex containers to be scrollable
+                if (el.style.display === 'flex' && el.style.flex === '1') {
+                  el.style.overflowY = 'auto';
+                  el.style.height = 'auto';
+                  el.style.minHeight = '100vh';
+                }
               }
-              
-              #root {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                height: auto !important;
-                min-height: 100vh !important;
-              }
-              
-              [data-rn-root="true"] {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                height: auto !important;
-                min-height: 100vh !important;
-              }
-              
-              /* Force all containers to be scrollable */
-              div {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-              }
-              
-              /* React Native Web specific fixes */
-              [class*="ScrollView"] {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-                height: auto !important;
-                max-height: none !important;
-              }
-              
-              [style*="flex: 1"] {
-                overflow-y: auto !important;
-                -webkit-overflow-scrolling: touch !important;
-              }
-            `;
-            
-            // Remove existing iframe styles if any
-            const existingStyle = document.getElementById('iframe-scrolling-fix');
-            if (existingStyle) {
-              existingStyle.remove();
-            }
-            
-            // Add new styles
-            const styleSheet = document.createElement('style');
-            styleSheet.id = 'iframe-scrolling-fix';
-            styleSheet.textContent = iframeStyles;
-            document.head.appendChild(styleSheet);
-            
-            // Force scroll on all ScrollView components
-            const scrollViews = document.querySelectorAll('[class*="ScrollView"]');
-            scrollViews.forEach((element) => {
-              (element as HTMLElement).style.overflowY = 'auto';
-              ((element as HTMLElement).style as any).webkitOverflowScrolling = 'touch';
             });
             
-            console.log('Iframe scrolling fixes applied');
+            // Specifically target React Native Web elements
+            const rnElements = document.querySelectorAll('[data-rn-root], [class*="ScrollView"], [class*="View"]');
+            rnElements.forEach((element) => {
+              const el = element as HTMLElement;
+              el.style.overflowY = 'auto';
+              el.style.overflowX = 'hidden';
+              el.style.height = 'auto';
+              el.style.minHeight = '100vh';
+              (el.style as any).webkitOverflowScrolling = 'touch';
+            });
+            
+            // Force body and html to be scrollable
+            document.body.style.overflowY = 'auto';
+            document.body.style.overflowX = 'hidden';
+            document.body.style.height = 'auto';
+            document.body.style.minHeight = '100vh';
+            (document.body.style as any).webkitOverflowScrolling = 'touch';
+            
+            document.documentElement.style.overflowY = 'auto';
+            document.documentElement.style.overflowX = 'hidden';
+            document.documentElement.style.height = 'auto';
+            document.documentElement.style.minHeight = '100vh';
+            (document.documentElement.style as any).webkitOverflowScrolling = 'touch';
+            
+            // Target the root element specifically
+            const root = document.getElementById('root');
+            if (root) {
+              root.style.overflowY = 'auto';
+              root.style.overflowX = 'hidden';
+              root.style.height = 'auto';
+              root.style.minHeight = '100vh';
+              (root.style as any).webkitOverflowScrolling = 'touch';
+            }
+            
+            console.log('Aggressive iframe scrolling fixes applied');
           };
           
           // Apply fixes immediately
-          applyIframeScrollingFixes();
+          applyAggressiveIframeScrollingFixes();
           
-          // Apply fixes after a delay to ensure React Native Web has rendered
-          setTimeout(applyIframeScrollingFixes, 1000);
-          setTimeout(applyIframeScrollingFixes, 2000);
+          // Apply fixes multiple times to ensure they stick
+          setTimeout(applyAggressiveIframeScrollingFixes, 100);
+          setTimeout(applyAggressiveIframeScrollingFixes, 500);
+          setTimeout(applyAggressiveIframeScrollingFixes, 1000);
+          setTimeout(applyAggressiveIframeScrollingFixes, 2000);
+          setTimeout(applyAggressiveIframeScrollingFixes, 5000);
+          
+          // Add a global style that forces scrolling
+          const globalStyle = document.createElement('style');
+          globalStyle.id = 'iframe-scrolling-force';
+          globalStyle.textContent = `
+            * {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+            
+            html, body {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              height: auto !important;
+              min-height: 100vh !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+            
+            #root {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              height: auto !important;
+              min-height: 100vh !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+            
+            [data-rn-root] {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              height: auto !important;
+              min-height: 100vh !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+            
+            [class*="ScrollView"] {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              height: auto !important;
+              min-height: 100vh !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+            
+            [class*="View"] {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              height: auto !important;
+              min-height: 100vh !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+            
+            div {
+              overflow-y: auto !important;
+              overflow-x: hidden !important;
+              -webkit-overflow-scrolling: touch !important;
+            }
+          `;
+          document.head.appendChild(globalStyle);
           
           // Listen for DOM changes and reapply fixes
           const observer = new MutationObserver(() => {
-            applyIframeScrollingFixes();
+            applyAggressiveIframeScrollingFixes();
           });
           
           observer.observe(document.body, {
@@ -119,6 +177,17 @@ export default function App() {
             attributes: true,
             attributeFilter: ['style', 'class']
           });
+          
+          // Also listen for scroll events to ensure scrolling works
+          window.addEventListener('scroll', () => {
+            console.log('Scroll event detected, scrolling is working');
+          }, { passive: true });
+          
+          // Force a scroll to test if it works
+          setTimeout(() => {
+            window.scrollTo(0, 1);
+            window.scrollTo(0, 0);
+          }, 1000);
         }
       } catch (error) {
         console.log('Error detecting iframe:', error);
