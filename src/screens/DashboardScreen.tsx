@@ -168,8 +168,7 @@ export default function DashboardScreen() {
     <ScrollView
       style={[styles.container, webMinHeight]}
       contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={Platform.OS === 'web'}
-      nestedScrollEnabled={true}
+      showsVerticalScrollIndicator={false}
     >
       <StatusBar style="auto" />
       <View style={{ alignItems: 'center', marginTop: 16, marginBottom: 8 }}>

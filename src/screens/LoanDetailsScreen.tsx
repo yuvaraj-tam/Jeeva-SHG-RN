@@ -45,7 +45,7 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
   const [borrowers, setBorrowers] = useState<LoanUser[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [selectedBorrowerIds, setSelectedBorrowerIds] = useState<string[]>([]);
-  const [selectedDateRange, setSelectedDateRange] = useState<string>('all');
+  const [selectedDateRange, setSelectedDateRange] = useState<string>('currentAndNext');
   const [isMarkingPaid, setIsMarkingPaid] = useState(false);
   const [showConfirmMarkPaid, setShowConfirmMarkPaid] = useState(false);
   const [showMarkPaidModal, setShowMarkPaidModal] = useState(false);
@@ -91,6 +91,9 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
     const now = new Date();
     
     switch (selectedDateRange) {
+      case 'currentAndNext':
+        // Default: current and next month only
+        return null; // This will trigger the default filtering logic
       case 'thisMonth':
         return { start: startOfMonth(now), end: endOfMonth(now) };
       case 'lastMonth':
@@ -108,9 +111,11 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
         return { start: startOfMonth(now), end: endOfMonth(addMonths(now, 5)) };
       case 'next12Months':
         return { start: startOfMonth(now), end: endOfMonth(addMonths(now, 11)) };
+      case 'all':
+        return null; // Show all payments including future ones
 
       default:
-        return null;
+        return null; // Default to current and next month
     }
   };
 
@@ -119,7 +124,32 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
     .filter(p => selectedBorrowerIds.length === 0 || selectedBorrowerIds.includes(p.borrowerId))
     .filter(p => {
       const dateFilter = getDateRangeFilter();
-      if (!dateFilter || !dateFilter.start || !dateFilter.end) return true;
+      if (selectedDateRange === 'all') {
+        // Show all payments including future ones
+        return true;
+      }
+      if (!dateFilter || !dateFilter.start || !dateFilter.end) {
+        // Default filter: only show current and next month payments
+        const now = new Date();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        
+        // Calculate next month
+        let nextMonth = currentMonth + 1;
+        let nextYear = currentYear;
+        if (nextMonth > 12) {
+          nextMonth = 1;
+          nextYear = currentYear + 1;
+        }
+        
+        const paymentDate = parseISO(p.dueDate);
+        const paymentMonth = paymentDate.getMonth() + 1;
+        const paymentYear = paymentDate.getFullYear();
+        
+        // Only show payments for current and next month
+        return (paymentMonth === currentMonth && paymentYear === currentYear) ||
+               (paymentMonth === nextMonth && paymentYear === nextYear);
+      }
       
       const paymentDate = parseISO(p.dueDate);
       return paymentDate >= dateFilter.start && paymentDate <= dateFilter.end;
@@ -137,7 +167,8 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
 
   // Date range shortcut options
   const dateRangeOptions = [
-    { key: 'all', label: 'All' },
+    { key: 'currentAndNext', label: 'Current & Next Month (Default)' },
+    { key: 'all', label: 'All Payments (Including Future)' },
     { key: 'thisMonth', label: 'This Month' },
     { key: 'lastMonth', label: 'Last Month' },
     { key: 'last3Months', label: 'Last 3 Months' },
@@ -444,7 +475,7 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
       const emiAmount = loan.emiAmount || 0;
       const startDate = loan.startDate ? parseISO(loan.startDate) : new Date();
       
-      // Get current date info
+      // Calculate current and next month
       const now = new Date();
       const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
       const currentYear = now.getFullYear();
@@ -457,56 +488,29 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
         nextYear = currentYear + 1;
       }
       
-      // Find which EMI numbers correspond to current and next month
-      let currentMonthEmi = -1;
-      let nextMonthEmi = -1;
+      // Find which EMIs correspond to current and next month
+      const emisToGenerate: number[] = [];
       
-      // Calculate EMI numbers for current and next month
       for (let i = 1; i <= totalEmis; i++) {
         const dueDate = addMonths(startDate, i - 1);
         const dueMonth = dueDate.getMonth() + 1;
         const dueYear = dueDate.getFullYear();
         
-        if (dueMonth === currentMonth && dueYear === currentYear) {
-          currentMonthEmi = i;
-        } else if (dueMonth === nextMonth && dueYear === nextYear) {
-          nextMonthEmi = i;
+        // Check if this EMI is for current or next month
+        if ((dueMonth === currentMonth && dueYear === currentYear) || 
+            (dueMonth === nextMonth && dueYear === nextYear)) {
+          emisToGenerate.push(i);
         }
       }
-      
-      // Generate payments only for current month and next month
-      const emisToGenerate: number[] = [];
-      if (currentMonthEmi !== -1) emisToGenerate.push(currentMonthEmi);
-      if (nextMonthEmi !== -1) emisToGenerate.push(nextMonthEmi);
       
       if (emisToGenerate.length === 0) {
-        Alert.alert('No Payments to Generate', 'No payments are due for current month or next month.');
+        Alert.alert('No Payments to Generate', 'No payments are due for the current or next month for this loan.');
         return;
       }
       
-      // Check if payments already exist for these months
-      const existingPayments = loanPayments;
-      const existingMonths = new Set();
-      existingPayments.forEach(p => {
-        existingMonths.add(`${p.month}-${p.year}`);
-      });
-      
-      const monthsToGenerate: { emiNum: number; dueDate: Date }[] = [];
-      emisToGenerate.forEach(emiNum => {
-        const dueDate = addMonths(startDate, emiNum - 1);
-        const monthKey = `${dueDate.getMonth() + 1}-${dueDate.getFullYear()}`;
-        if (!existingMonths.has(monthKey)) {
-          monthsToGenerate.push({ emiNum, dueDate });
-        }
-      });
-      
-      if (monthsToGenerate.length === 0) {
-        Alert.alert('Payments Already Exist', 'Payments for current month and next month already exist for this loan.');
-        return;
-      }
-      
-      // Generate payments for current and next month only
-      for (const { emiNum, dueDate } of monthsToGenerate) {
+      // Generate payments only for current and next month EMIs
+      for (const emiNumber of emisToGenerate) {
+        const dueDate = addMonths(startDate, emiNumber - 1);
         for (const borrowerId of loan.borrowerIds || []) {
           const amount = loan.emiAmounts && loan.emiAmounts[borrowerId] !== undefined ? loan.emiAmounts[borrowerId] : emiAmount;
           await PaymentService.addPayment({
@@ -518,17 +522,17 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
             reminderSent: false,
             month: dueDate.getMonth() + 1,
             year: dueDate.getFullYear(),
-            emiNumber: emiNum,
+            emiNumber: emiNumber,
           });
         }
       }
       
-      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const generatedMonths = monthsToGenerate.map(({ dueDate }) => 
-        `${monthNames[dueDate.getMonth()]} ${dueDate.getFullYear()}`
-      ).join(' and ');
+      const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 
+                         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const currentMonthName = monthNames[currentMonth - 1];
+      const nextMonthName = monthNames[nextMonth - 1];
       
-      Alert.alert('Success', `Generated payments for ${generatedMonths} for all borrowers!`);
+      Alert.alert('Success', `Generated payments for ${currentMonthName} ${currentYear} and ${nextMonthName} ${nextYear} for all borrowers!`);
     } catch (error) {
       console.error('Error generating payments:', error);
       Alert.alert('Error', 'Failed to generate payments. Please try again.');
@@ -576,8 +580,8 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
               <Text style={styles.detailValue}>
                 {item.paymentMethod === 'cash' ? 'Cash' :
                  item.paymentMethod === 'upi' ? 'UPI' :
-                 item.paymentMethod === 'bank_transfer' ? 'Netbanking' :
-                 item.paymentMethod === 'cheque' ? 'Card' :
+                 item.paymentMethod === 'bank_transfer' ? 'Bank Transfer' :
+                 item.paymentMethod === 'cheque' ? 'Cheque' :
                  item.paymentMethod === 'bank_deposit' ? 'Bank Deposit' :
                  item.paymentMethod === 'collection_agent' ? 'Collection Agent' :
                  item.paymentMethod === 'online_transfer' ? 'Online Transfer' :
@@ -644,8 +648,7 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
     <ScrollView
       style={[styles.container, webMinHeight]}
       contentContainerStyle={styles.contentContainer}
-      showsVerticalScrollIndicator={Platform.OS === 'web'}
-      nestedScrollEnabled={true}
+      showsVerticalScrollIndicator={false}
     >
       <StatusBar style="auto" />
       
@@ -821,7 +824,7 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
             ) : thisMonthTotalCount === 0 ? (
               <View style={styles.noPaymentsInfo}>
                 <Text style={styles.noPaymentsText}>
-                  No payments found for this month. Generate payments first from the Payments screen.
+                  No payments found for this month. Generate payments for current and next month first.
                 </Text>
                 <Button
                   variant="outline"
@@ -829,7 +832,7 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
                   onPress={handleGeneratePayments}
                   style={styles.generatePaymentsButton}
                 >
-                  Generate Payments
+                  Generate Current & Next Month
                 </Button>
               </View>
             ) : (
@@ -855,7 +858,7 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
       <Card style={styles.paymentsCard}>
         <CardHeader>
           <CardTitle>Payment History</CardTitle>
-          <CardDescription>All payments for this loan</CardDescription>
+          <CardDescription>Current and next month payments (use filters to see more)</CardDescription>
         </CardHeader>
         <CardContent>
           {/* Borrower Filter */}
@@ -901,9 +904,11 @@ export default function LoanDetailsScreen({ route, navigation }: LoanDetailsScre
             <Text style={styles.emptyText}>No payments found for this loan.</Text>
           ) : filteredPayments.length === 0 ? (
             <Text style={styles.emptyText}>
-              {selectedBorrowerIds.length > 0 || selectedDateRange !== 'all'
-                ? 'No payments found for the selected filters.' 
-                : 'No payments found for this loan.'}
+              {selectedBorrowerIds.length > 0 
+                ? 'No payments found for the selected borrowers.' 
+                : selectedDateRange === 'all'
+                ? 'No payments found for this loan.'
+                : 'No payments found for the selected date range.'}
             </Text>
           ) : (
             <View style={styles.paymentsList}>

@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 // Iframe detection and optimization utilities
 
 export interface IframeConfig {
@@ -54,87 +52,22 @@ class IframeManager {
 
     // Add dynamic styles for iframe optimization
     const styles = `
-      /* Base iframe styles */
       .iframe-mode {
         margin: 0 !important;
         padding: 0 !important;
-        overflow-x: hidden !important;
+        overflow-x: hidden;
         min-height: 100vh;
-        -webkit-overflow-scrolling: touch;
       }
 
-      /* Force scrolling on all containers */
-      .iframe-mode * {
-        max-width: 100% !important;
-      }
-
-      /* React Native Web ScrollView fixes */
-      .iframe-mode [data-rn-root="true"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        height: 100vh !important;
-      }
-
-      /* Target React Native ScrollView specifically */
-      .iframe-mode [class*="ScrollView"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        height: auto !important;
-        max-height: none !important;
-      }
-
-      /* Force scroll on all scroll containers */
-      .iframe-mode [style*="overflow"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
-
-      /* Target specific React Native Web elements */
-      .iframe-mode [data-testid="scroll-view"],
-      .iframe-mode [class*="scroll"],
-      .iframe-mode [class*="Scroll"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        height: auto !important;
-        max-height: none !important;
-      }
-
-      /* Force scroll on body and html */
-      .iframe-mode html,
-      .iframe-mode body {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        height: auto !important;
-        min-height: 100vh !important;
-      }
-
-      /* Target the main app container */
-      .iframe-mode #root {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        height: auto !important;
-        min-height: 100vh !important;
-      }
-
-      /* Force scroll on all View components */
-      .iframe-mode [class*="View"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
-
-      /* Sidebar specific styles */
       .iframe-mode .sidebar {
         position: fixed;
         z-index: 1000;
         height: 100vh;
         overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
       }
 
       .iframe-mode .main-content {
         transition: margin-left 0.3s ease;
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
       }
 
       /* Mobile optimization for iframe */
@@ -152,8 +85,6 @@ class IframeManager {
         .iframe-mode .main-content {
           margin-left: 0 !important;
           padding: 10px;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
         }
 
         .iframe-mode .mobile-menu-overlay {
@@ -172,6 +103,11 @@ class IframeManager {
         }
       }
 
+      /* Prevent horizontal scrolling in iframe */
+      .iframe-mode * {
+        max-width: 100% !important;
+      }
+
       /* Optimize buttons and interactive elements */
       .iframe-mode button {
         min-height: 44px;
@@ -184,46 +120,6 @@ class IframeManager {
         display: flex;
         align-items: center;
         padding: 8px 16px;
-      }
-
-      /* Fix for modal scrolling in iframe */
-      .iframe-mode .modal {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        max-height: 90vh;
-      }
-
-      /* Fix for card content scrolling */
-      .iframe-mode .card-content {
-        overflow-y: auto;
-        -webkit-overflow-scrolling: touch;
-        max-height: calc(100vh - 200px);
-      }
-
-      /* Force scroll on all containers with flex: 1 */
-      .iframe-mode [style*="flex: 1"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
-
-      /* Target React Native Web specific classes */
-      .iframe-mode [class*="react-native"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
-
-      /* Force scroll on all div elements */
-      .iframe-mode div {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-      }
-
-      /* Specific fix for the main container */
-      .iframe-mode [style*="flex: 1"] {
-        overflow-y: auto !important;
-        -webkit-overflow-scrolling: touch !important;
-        height: auto !important;
-        min-height: 100vh !important;
       }
     `;
 
@@ -344,8 +240,7 @@ class IframeManager {
     // Prevent parent page scrolling when scrolling inside iframe
     let isScrolling = false;
 
-    // Enhanced scrolling for iframe environment
-    const handleScroll = (event: Event) => {
+    window.addEventListener('wheel', (event) => {
       if (!isScrolling) {
         isScrolling = true;
         setTimeout(() => { isScrolling = false; }, 100);
@@ -357,43 +252,7 @@ class IframeManager {
           scrollLeft: window.scrollX
         });
       }
-    };
-
-    // Add multiple scroll event listeners for better coverage
-    window.addEventListener('wheel', handleScroll, { passive: true });
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    window.addEventListener('touchmove', handleScroll, { passive: true });
-
-    // Fix for mobile scrolling in iframe
-    if (this.config.viewportWidth < 768) {
-      // Enable momentum scrolling on iOS
-      (document.body.style as any).webkitOverflowScrolling = 'touch';
-      
-      // Ensure proper scroll behavior
-      document.documentElement.style.overflow = 'auto';
-      document.body.style.overflow = 'auto';
-      
-      // Fix for iframe height issues
-      const resizeObserver = new ResizeObserver(() => {
-        this.postMessageToParent({
-          type: 'RESIZE',
-          height: document.body.scrollHeight,
-          width: document.body.scrollWidth
-        });
-      });
-      
-      resizeObserver.observe(document.body);
-    }
-
-    // Fix for web scrolling in iframe
-    if (Platform.OS === 'web') {
-      // Ensure scroll containers work properly
-      const scrollContainers = document.querySelectorAll('.scroll-view, [data-scroll="true"]');
-      scrollContainers.forEach(container => {
-        (container as HTMLElement).style.overflowY = 'auto';
-        ((container as HTMLElement).style as any).webkitOverflowScrolling = 'touch';
-      });
-    }
+    }, { passive: true });
   }
 
   private observeHeightChanges(): void {
