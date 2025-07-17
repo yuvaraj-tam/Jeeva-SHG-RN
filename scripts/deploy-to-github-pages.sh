@@ -1,89 +1,63 @@
 #!/bin/bash
 
-echo "🚀 Deploying Jeeva SHG Manager to GitHub Pages for Wix Integration"
-echo "================================================================"
+echo "🚀 Deploying to GitHub Pages via Git"
+echo "====================================="
 
-# Check if dist folder exists
-if [ ! -d "dist" ]; then
-    echo "❌ Error: dist folder not found!"
-    echo "Please run 'npx expo export --platform web' first"
+# Check if we're in the right directory
+if [ ! -d "simple-deploy" ]; then
+    echo "❌ Error: simple-deploy folder not found!"
+    echo "Please run ./scripts/deploy-simple.sh first"
     exit 1
 fi
 
-echo "✅ Found dist folder"
-
-# Fix GitHub Pages paths
-echo "🔧 Fixing asset paths for GitHub Pages..."
-./scripts/fix-github-pages-paths.sh
-
-# Create a temporary directory for GitHub Pages
-TEMP_DIR="jeeva-shg-manager-web"
-rm -rf $TEMP_DIR
-mkdir $TEMP_DIR
-
-# Copy all files from dist to temp directory
-echo "📁 Copying files..."
-cp -r dist/* $TEMP_DIR/
-
-# Create a simple index.html if it doesn't exist
-if [ ! -f "$TEMP_DIR/index.html" ]; then
-    echo "📄 Creating index.html..."
-    cat > $TEMP_DIR/index.html << 'EOF'
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeeva SHG Manager</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-        .container {
-            width: 100%;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .app-frame {
-            width: 100%;
-            height: 100vh;
-            border: none;
-            display: block;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <iframe 
-            class="app-frame"
-            src="./index.html"
-            title="Jeeva SHG Manager">
-        </iframe>
-    </div>
-</body>
-</html>
-EOF
+# Check if git is available
+if ! command -v git &> /dev/null; then
+    echo "❌ Error: Git is not installed or not in PATH"
+    exit 1
 fi
 
-echo "✅ Files prepared in $TEMP_DIR folder"
+echo "📁 Found simple-deploy folder with files:"
+ls -la simple-deploy/
+
 echo ""
-echo "📋 Next Steps:"
-echo "1. Create a new GitHub repository named 'jeeva-shg-manager-web'"
-echo "2. Upload all files from the '$TEMP_DIR' folder to your repository"
-echo "3. Go to repository Settings → Pages → Enable GitHub Pages"
-echo "4. Your app URL will be: https://yourusername.github.io/jeeva-shg-manager-web/"
+echo "🔄 Creating gh-pages branch and deploying..."
+
+# Create a temporary directory for deployment
+TEMP_DIR=$(mktemp -d)
+echo "📂 Using temporary directory: $TEMP_DIR"
+
+# Copy deployment files to temp directory
+cp -r simple-deploy/* "$TEMP_DIR/"
+
+# Navigate to temp directory
+cd "$TEMP_DIR"
+
+# Initialize git repository
+git init
+git add .
+git commit -m "Deploy latest version to GitHub Pages"
+
+# Add remote origin
+git remote add origin https://github.com/yuvaraj-tam/Jeeva-SHG-RN.git
+
+# Force push to gh-pages branch
+echo "📤 Pushing to gh-pages branch..."
+git push -f origin main:gh-pages
+
+# Clean up
+cd - > /dev/null
+rm -rf "$TEMP_DIR"
+
 echo ""
-echo "🔗 Then add this HTML to your Wix page:"
-echo "----------------------------------------"
-echo "<iframe src=\"https://yourusername.github.io/jeeva-shg-manager-web/\""
-echo "        style=\"width: 100%; height: 100vh; border: none; display: block;\""
-echo "        title=\"Jeeva SHG Manager\">"
-echo "</iframe>"
-echo "----------------------------------------"
+echo "✅ Deployment completed!"
 echo ""
-echo "🎉 Your app will be ready for Wix integration!" 
+echo "📋 Next steps:"
+echo "1. Go to your GitHub repository settings"
+echo "2. Navigate to 'Pages' section"
+echo "3. Set source to 'Deploy from a branch'"
+echo "4. Select 'gh-pages' branch and '/ (root)' folder"
+echo "5. Click 'Save'"
+echo ""
+echo "🌐 Your app will be available at: https://yuvaraj-tam.github.io/Jeeva-SHG-RN/"
+echo ""
+echo "⏱️  It may take a few minutes for the changes to appear." 
