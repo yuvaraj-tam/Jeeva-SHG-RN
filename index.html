@@ -23,7 +23,58 @@
         flex: 1;
       }
     </style>
-  <link rel="icon" href="favicon.ico" /></head>
+    
+    <!-- Enhanced scrolling fixes for web and iframe environments -->
+    <style>
+      /* Universal scrolling fixes */
+      html, body {
+        overflow: auto !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: relative !important;
+      }
+      
+      #root {
+        overflow: auto !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: relative !important;
+        display: block !important;
+        flex: none !important;
+      }
+      
+      /* Force scrolling on all scrollable elements */
+      * {
+        overflow: visible !important;
+      }
+      
+      /* Ensure proper scrolling behavior */
+      .scrollable-container {
+        overflow: auto !important;
+        overflow-x: auto !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: relative !important;
+      }
+      
+      /* Fix for iframe environments */
+      @media (max-width: 9999px) {
+        html, body, #root {
+          overflow: auto !important;
+          overflow-x: auto !important;
+          overflow-y: auto !important;
+          height: auto !important;
+          min-height: 100vh !important;
+          position: relative !important;
+        }
+      }
+    </style>
+  <link rel="icon" href="/favicon.ico" /></head>
 
   <body>
     <!-- Use static rendering with Expo Router to support running without JavaScript. -->
@@ -32,6 +83,61 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
-  <script src="./_expo/static/js/web/index-87f9edf8881613f50cc916704b50915d.js" defer></script>
+    
+    <!-- Enhanced scrolling script -->
+    <script>
+      // Force scrolling fixes after page load
+      function applyScrollingFixes() {
+        const html = document.documentElement;
+        const body = document.body;
+        const root = document.getElementById('root');
+        
+        // Apply scrolling styles
+        [html, body, root].forEach(element => {
+          if (element) {
+            element.style.overflow = 'auto';
+            element.style.overflowX = 'auto';
+            element.style.overflowY = 'auto';
+            element.style.height = 'auto';
+            element.style.minHeight = '100vh';
+            element.style.position = 'relative';
+          }
+        });
+        
+        // Remove flex display from root
+        if (root) {
+          root.style.display = 'block';
+          root.style.flex = 'none';
+        }
+        
+        // Force scroll on all elements
+        document.querySelectorAll('*').forEach(el => {
+          el.style.overflow = 'visible';
+        });
+      }
+      
+      // Apply fixes immediately
+      applyScrollingFixes();
+      
+      // Apply fixes after DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyScrollingFixes);
+      }
+      
+      // Apply fixes after window loads
+      window.addEventListener('load', applyScrollingFixes);
+      
+      // Apply fixes periodically for the first few seconds
+      let attempts = 0;
+      const interval = setInterval(() => {
+        applyScrollingFixes();
+        attempts++;
+        if (attempts >= 10) {
+          clearInterval(interval);
+        }
+      }, 500);
+    </script>
+    
+  <script src="/_expo/static/js/web/index-d3991442c5d1e88342d809f1d90f4d15.js" defer></script>
 </body>
 </html>
