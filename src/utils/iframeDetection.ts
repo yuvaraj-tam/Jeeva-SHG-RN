@@ -37,13 +37,236 @@ class IframeManager {
   }
 
   private initializeOptimizations(): void {
+    // Always apply scrolling optimizations, not just for iframe
+    this.applyScrollingStyles();
+    this.setupCommunication();
+    this.handleResize();
+    this.optimizeScrolling();
+    this.fixTouchEvents();
+    
     if (this.config.isInIframe) {
       // Apply iframe-specific optimizations
       this.applyIframeStyles();
-      this.setupCommunication();
-      this.handleResize();
-      this.optimizeScrolling();
-      this.fixTouchEvents();
+    }
+  }
+
+  private applyScrollingStyles(): void {
+    // Apply scrolling styles to all environments
+    const styles = `
+      /* Global scrolling fixes for all environments */
+      body {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+        margin: 0 !important;
+        padding: 0 !important;
+      }
+
+      html {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Fix React Native Web root */
+      [data-rn-root] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        flex-direction: column !important;
+      }
+
+      /* Fix main app container */
+      [data-rn-root] > div {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        flex: 1 !important;
+      }
+
+      /* Fix all div containers */
+      div {
+        box-sizing: border-box !important;
+      }
+
+      /* Fix main content area */
+      .main-content {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        flex: 1 !important;
+      }
+
+      /* Fix screen containers */
+      .screen-container {
+        height: auto !important;
+        min-height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 20px !important;
+        display: block !important;
+      }
+
+      /* Fix ScrollView components */
+      [class*="ScrollView"] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100% !important;
+        display: block !important;
+      }
+
+      /* Fix sidebar */
+      .sidebar {
+        position: fixed;
+        z-index: 1000;
+        height: 100vh;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Mobile optimization */
+      @media (max-width: 768px) {
+        .sidebar {
+          transform: translateX(-100%);
+          transition: transform 0.3s ease;
+          width: 280px;
+        }
+        
+        .sidebar.mobile-open {
+          transform: translateX(0);
+        }
+        
+        .main-content {
+          margin-left: 0 !important;
+          padding: 10px;
+        }
+
+        .screen-container {
+          height: auto !important;
+          min-height: calc(100vh - 60px) !important;
+          padding: 10px !important;
+        }
+      }
+
+      /* Prevent horizontal scrolling */
+      * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+      }
+
+      /* Optimize buttons and interactive elements */
+      button {
+        min-height: 44px;
+        min-width: 44px;
+      }
+
+      /* Better touch targets for mobile */
+      .touchable {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        padding: 8px 16px;
+      }
+
+      /* Force scrolling on all content areas */
+      .content-container {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100% !important;
+        display: block !important;
+      }
+
+      /* Fix for cards and other containers */
+      .card {
+        overflow: visible !important;
+      }
+
+      .card-content {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100% !important;
+        display: block !important;
+      }
+
+      /* Override any fixed heights */
+      [style*="height"] {
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+
+      [style*="overflow: hidden"] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+
+      /* Ensure the root element is scrollable */
+      #root {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Fix for React Native Web specific issues */
+      [data-rn-root] {
+        display: block !important;
+        flex-direction: column !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+      }
+
+      [data-rn-root] > div {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        display: block !important;
+      }
+    `;
+
+    const styleSheet = document.createElement('style');
+    styleSheet.textContent = styles;
+    document.head.appendChild(styleSheet);
+
+    // Also apply styles directly to body and html
+    if (document.body) {
+      document.body.style.overflowY = 'auto';
+      document.body.style.overflowX = 'hidden';
+      document.body.style.height = 'auto';
+      document.body.style.minHeight = '100vh';
+      (document.body.style as any).webkitOverflowScrolling = 'touch';
+    }
+
+    if (document.documentElement) {
+      document.documentElement.style.overflowY = 'auto';
+      document.documentElement.style.overflowX = 'hidden';
+      document.documentElement.style.height = 'auto';
+      document.documentElement.style.minHeight = '100vh';
+      (document.documentElement.style as any).webkitOverflowScrolling = 'touch';
     }
   }
 
@@ -63,20 +286,34 @@ class IframeManager {
         position: relative !important;
       }
 
+      /* Force scrolling on body and html */
+      .iframe-mode body,
+      .iframe-mode html {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
       /* Fix scrolling for all containers */
       .iframe-mode [data-rn-root] {
         overflow-y: auto !important;
         overflow-x: hidden !important;
-        height: 100vh !important;
+        height: auto !important;
+        min-height: 100vh !important;
         -webkit-overflow-scrolling: touch !important;
+        display: block !important;
       }
 
       /* Fix main app container */
       .iframe-mode [data-rn-root] > div {
-        height: 100vh !important;
+        height: auto !important;
+        min-height: 100vh !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        display: block !important;
       }
 
       /* Fix sidebar scrolling */
@@ -91,19 +328,23 @@ class IframeManager {
       /* Fix main content scrolling */
       .iframe-mode .main-content {
         transition: margin-left 0.3s ease;
-        height: 100vh !important;
+        height: auto !important;
+        min-height: 100vh !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        display: block !important;
       }
 
       /* Fix screen containers */
       .iframe-mode .screen-container {
-        height: calc(100vh - 60px) !important;
+        height: auto !important;
+        min-height: calc(100vh - 60px) !important;
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
         padding-bottom: 20px !important;
+        display: block !important;
       }
 
       /* Fix ScrollView components */
@@ -111,11 +352,19 @@ class IframeManager {
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
-        height: 100% !important;
+        height: auto !important;
+        min-height: 100% !important;
+        display: block !important;
       }
 
       /* Fix all div elements that should scroll */
       .iframe-mode div {
+        box-sizing: border-box !important;
+      }
+
+      /* Force all content to be scrollable */
+      .iframe-mode * {
+        max-width: 100% !important;
         box-sizing: border-box !important;
       }
 
@@ -153,7 +402,8 @@ class IframeManager {
 
         /* Mobile specific scrolling fixes */
         .iframe-mode .screen-container {
-          height: calc(100vh - 60px) !important;
+          height: auto !important;
+          min-height: calc(100vh - 60px) !important;
           padding: 10px !important;
         }
       }
@@ -180,10 +430,11 @@ class IframeManager {
 
       /* Fix for React Native Web components */
       .iframe-mode [data-rn-root] {
-        display: flex !important;
+        display: block !important;
         flex-direction: column !important;
-        height: 100vh !important;
-        overflow: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
       }
 
       .iframe-mode [data-rn-root] > div {
@@ -191,6 +442,9 @@ class IframeManager {
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        display: block !important;
       }
 
       /* Ensure proper scrolling for all content areas */
@@ -198,7 +452,9 @@ class IframeManager {
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
-        height: 100% !important;
+        height: auto !important;
+        min-height: 100% !important;
+        display: block !important;
       }
 
       /* Fix for cards and other containers */
@@ -210,12 +466,60 @@ class IframeManager {
         overflow-y: auto !important;
         overflow-x: hidden !important;
         -webkit-overflow-scrolling: touch !important;
+        height: auto !important;
+        min-height: 100% !important;
+        display: block !important;
+      }
+
+      /* Force iframe to be scrollable */
+      .iframe-mode iframe {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+
+      /* Override any fixed heights */
+      .iframe-mode [style*="height"] {
+        height: auto !important;
+        min-height: 100vh !important;
+      }
+
+      .iframe-mode [style*="overflow: hidden"] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+      }
+
+      /* Ensure the root element is scrollable */
+      .iframe-mode #root {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
       }
     `;
 
     const styleSheet = document.createElement('style');
     styleSheet.textContent = styles;
     document.head.appendChild(styleSheet);
+
+    // Also apply styles directly to body and html
+    if (document.body) {
+      document.body.style.overflowY = 'auto';
+      document.body.style.overflowX = 'hidden';
+      document.body.style.height = 'auto';
+      document.body.style.minHeight = '100vh';
+      (document.body.style as any).webkitOverflowScrolling = 'touch';
+    }
+
+    if (document.documentElement) {
+      document.documentElement.style.overflowY = 'auto';
+      document.documentElement.style.overflowX = 'hidden';
+      document.documentElement.style.height = 'auto';
+      document.documentElement.style.minHeight = '100vh';
+      (document.documentElement.style as any).webkitOverflowScrolling = 'touch';
+    }
   }
 
   private setupCommunication(): void {
@@ -374,6 +678,39 @@ class IframeManager {
 
     // Fix scrolling for all scrollable elements
     this.fixScrollableElements();
+
+    // Force scroll test to ensure scrolling works
+    setTimeout(() => {
+      this.forceScrollTest();
+    }, 2000);
+  }
+
+  private forceScrollTest(): void {
+    // Force scroll to bottom and back to top to ensure scrolling works
+    const scrollToBottom = () => {
+      window.scrollTo({
+        top: document.body.scrollHeight,
+        behavior: 'smooth'
+      });
+    };
+
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    };
+
+    // Test scrolling after a delay
+    setTimeout(scrollToBottom, 500);
+    setTimeout(scrollToTop, 1500);
+
+    // Also notify parent about content height
+    this.postMessageToParent({
+      type: 'CONTENT_HEIGHT',
+      height: document.body.scrollHeight,
+      viewportHeight: window.innerHeight
+    });
   }
 
   private fixScrollableElements(): void {
@@ -384,7 +721,10 @@ class IframeManager {
       '.screen-container',
       '.content-container',
       '[class*="ScrollView"]',
-      '.card-content'
+      '.card-content',
+      'body',
+      'html',
+      '#root'
     ];
 
     scrollableSelectors.forEach(selector => {
@@ -393,7 +733,10 @@ class IframeManager {
         if (element instanceof HTMLElement) {
           element.style.overflowY = 'auto';
           element.style.overflowX = 'hidden';
+          element.style.height = 'auto';
+          element.style.minHeight = '100vh';
           (element.style as any).webkitOverflowScrolling = 'touch';
+          element.style.display = 'block';
         }
       });
     });
@@ -406,7 +749,10 @@ class IframeManager {
             if (scrollableSelectors.some(selector => node.matches(selector))) {
               node.style.overflowY = 'auto';
               node.style.overflowX = 'hidden';
+              node.style.height = 'auto';
+              node.style.minHeight = '100vh';
               (node.style as any).webkitOverflowScrolling = 'touch';
+              node.style.display = 'block';
             }
           }
         });
@@ -417,6 +763,75 @@ class IframeManager {
       childList: true,
       subtree: true
     });
+
+    // Force apply styles to all div elements
+    setTimeout(() => {
+      const allDivs = document.querySelectorAll('div');
+      allDivs.forEach(div => {
+        if (div instanceof HTMLElement) {
+          // Only apply if the div has content that might need scrolling
+          if (div.scrollHeight > div.clientHeight || div.children.length > 0) {
+            div.style.overflowY = 'auto';
+            div.style.overflowX = 'hidden';
+            (div.style as any).webkitOverflowScrolling = 'touch';
+          }
+        }
+      });
+    }, 1000);
+
+    // Apply fixes repeatedly to catch any missed elements
+    const applyFixes = () => {
+      // Force body and html scrolling
+      if (document.body) {
+        document.body.style.overflowY = 'auto';
+        document.body.style.overflowX = 'hidden';
+        document.body.style.height = 'auto';
+        document.body.style.minHeight = '100vh';
+        (document.body.style as any).webkitOverflowScrolling = 'touch';
+      }
+
+      if (document.documentElement) {
+        document.documentElement.style.overflowY = 'auto';
+        document.documentElement.style.overflowX = 'hidden';
+        document.documentElement.style.height = 'auto';
+        document.documentElement.style.minHeight = '100vh';
+        (document.documentElement.style as any).webkitOverflowScrolling = 'touch';
+      }
+
+      // Fix React Native Web root
+      const rnRoot = document.querySelector('[data-rn-root]');
+      if (rnRoot instanceof HTMLElement) {
+        rnRoot.style.overflowY = 'auto';
+        rnRoot.style.overflowX = 'hidden';
+        rnRoot.style.height = 'auto';
+        rnRoot.style.minHeight = '100vh';
+        (rnRoot.style as any).webkitOverflowScrolling = 'touch';
+        rnRoot.style.display = 'block';
+      }
+
+      // Fix main app container
+      const mainContainer = document.querySelector('[data-rn-root] > div');
+      if (mainContainer instanceof HTMLElement) {
+        mainContainer.style.overflowY = 'auto';
+        mainContainer.style.overflowX = 'hidden';
+        mainContainer.style.height = 'auto';
+        mainContainer.style.minHeight = '100vh';
+        (mainContainer.style as any).webkitOverflowScrolling = 'touch';
+        mainContainer.style.display = 'block';
+        mainContainer.style.flex = '1';
+      }
+    };
+
+    // Apply fixes immediately and then repeatedly
+    applyFixes();
+    setTimeout(applyFixes, 500);
+    setTimeout(applyFixes, 1000);
+    setTimeout(applyFixes, 2000);
+    setTimeout(applyFixes, 5000);
+
+    // Also apply fixes on window resize and scroll events
+    window.addEventListener('resize', applyFixes);
+    window.addEventListener('scroll', applyFixes);
   }
 
   private fixTouchEvents(): void {

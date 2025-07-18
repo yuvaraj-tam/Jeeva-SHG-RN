@@ -107,8 +107,8 @@ export default function App() {
 
   // Apply CSS classes for iframe mode
   useEffect(() => {
-    if (Platform.OS === 'web' && isIframeEnv) {
-      // Apply CSS classes to DOM elements for iframe scrolling
+    if (Platform.OS === 'web') {
+      // Apply CSS classes to DOM elements for scrolling (both iframe and main app)
       const mainContent = document.querySelector('[data-rn-root] > div');
       const screenContainer = mainContent?.querySelector('div[style*="flex: 1"]');
       
@@ -119,8 +119,40 @@ export default function App() {
       if (screenContainer) {
         screenContainer.classList.add('screen-container');
       }
+
+      // Force apply scrolling styles to all containers
+      setTimeout(() => {
+        const allDivs = document.querySelectorAll('div');
+        allDivs.forEach(div => {
+          if (div instanceof HTMLElement) {
+            // Apply scrolling styles to containers that might need it
+            if (div.children.length > 0 || div.scrollHeight > div.clientHeight) {
+              div.style.overflowY = 'auto';
+              div.style.overflowX = 'hidden';
+              (div.style as any).webkitOverflowScrolling = 'touch';
+            }
+          }
+        });
+
+        // Ensure body and html are scrollable
+        if (document.body) {
+          document.body.style.overflowY = 'auto';
+          document.body.style.overflowX = 'hidden';
+          document.body.style.height = 'auto';
+          document.body.style.minHeight = '100vh';
+          (document.body.style as any).webkitOverflowScrolling = 'touch';
+        }
+
+        if (document.documentElement) {
+          document.documentElement.style.overflowY = 'auto';
+          document.documentElement.style.overflowX = 'hidden';
+          document.documentElement.style.height = 'auto';
+          document.documentElement.style.minHeight = '100vh';
+          (document.documentElement.style as any).webkitOverflowScrolling = 'touch';
+        }
+      }, 1000);
     }
-  }, [isIframeEnv, currentScreen]);
+  }, [currentScreen]); // Remove isIframeEnv dependency to apply to all environments
 
   const handleLogin = (credentials: any) => {
     console.log('Login handled by Firebase auth - state will update via onAuthStateChanged');

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeeva SHG Manager - Iframe Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .iframe-container {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .iframe-container iframe {
+            width: 100%;
+            height: 80vh;
+            border: none;
+            display: block;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .test-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+        
+        .test-info h3 {
+            margin: 0 0 10px 0;
+            color: #1976d2;
+        }
+        
+        .test-info ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+        
+        .test-info li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Jeeva SHG Manager - Iframe Scrolling Test</h1>
+            <p>This page tests the iframe scrolling functionality of the Jeeva SHG Manager app.</p>
+        </div>
+        
+        <div class="test-info">
+            <h3>Testing Instructions:</h3>
+            <ul>
+                <li>Try scrolling within the iframe using mouse wheel, touch gestures, or scrollbar</li>
+                <li>Navigate to different screens within the app (Dashboard, Loans, Payments, etc.)</li>
+                <li>Check if the content scrolls properly on both desktop and mobile</li>
+                <li>Verify that the iframe doesn't interfere with the parent page scrolling</li>
+            </ul>
+        </div>
+        
+        <div class="iframe-container">
+            <iframe 
+                src="https://yuvaraj-tam.github.io/Jeeva-SHG-RN/"
+                title="Jeeva SHG Manager"
+                scrolling="auto"
+                allowfullscreen
+                sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-modals"
+            ></iframe>
+        </div>
+        
+        <div class="test-info">
+            <h3>Iframe Attributes Used:</h3>
+            <ul>
+                <li><strong>scrolling="auto"</strong>: Enables scrolling within the iframe</li>
+                <li><strong>allowfullscreen</strong>: Allows the iframe to go fullscreen</li>
+                <li><strong>sandbox</strong>: Security restrictions while allowing necessary functionality</li>
+                <li><strong>height="80vh"</strong>: Sets iframe height to 80% of viewport height</li>
+            </ul>
+        </div>
+    </div>
+    
+    <script>
+        // Listen for messages from the iframe
+        window.addEventListener('message', function(event) {
+            if (event.origin === 'https://yuvaraj-tam.github.io') {
+                console.log('Message from iframe:', event.data);
+                
+                // Handle content height changes
+                if (event.data.type === 'CONTENT_HEIGHT') {
+                    console.log('Content height:', event.data.height);
+                    console.log('Viewport height:', event.data.viewportHeight);
+                }
+            }
+        });
+        
+        // Test iframe loading
+        const iframe = document.querySelector('iframe');
+        iframe.addEventListener('load', function() {
+            console.log('Iframe loaded successfully');
+        });
+        
+        iframe.addEventListener('error', function() {
+            console.error('Iframe failed to load');
+        });
+    </script>
+</body>
+</html> 
