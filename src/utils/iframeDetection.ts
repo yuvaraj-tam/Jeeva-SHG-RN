@@ -43,6 +43,7 @@ class IframeManager {
       this.setupCommunication();
       this.handleResize();
       this.optimizeScrolling();
+      this.fixTouchEvents();
     }
   }
 
@@ -52,22 +53,70 @@ class IframeManager {
 
     // Add dynamic styles for iframe optimization
     const styles = `
+      /* Reset body and html for iframe */
       .iframe-mode {
         margin: 0 !important;
         padding: 0 !important;
-        overflow-x: hidden;
-        min-height: 100vh;
+        overflow-x: hidden !important;
+        min-height: 100vh !important;
+        height: auto !important;
+        position: relative !important;
       }
 
+      /* Fix scrolling for all containers */
+      .iframe-mode [data-rn-root] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: 100vh !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Fix main app container */
+      .iframe-mode [data-rn-root] > div {
+        height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Fix sidebar scrolling */
       .iframe-mode .sidebar {
         position: fixed;
         z-index: 1000;
         height: 100vh;
-        overflow-y: auto;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
       }
 
+      /* Fix main content scrolling */
       .iframe-mode .main-content {
         transition: margin-left 0.3s ease;
+        height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Fix screen containers */
+      .iframe-mode .screen-container {
+        height: calc(100vh - 60px) !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        padding-bottom: 20px !important;
+      }
+
+      /* Fix ScrollView components */
+      .iframe-mode [class*="ScrollView"] {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: 100% !important;
+      }
+
+      /* Fix all div elements that should scroll */
+      .iframe-mode div {
+        box-sizing: border-box !important;
       }
 
       /* Mobile optimization for iframe */
@@ -101,11 +150,18 @@ class IframeManager {
         .iframe-mode .mobile-menu-overlay.active {
           display: block;
         }
+
+        /* Mobile specific scrolling fixes */
+        .iframe-mode .screen-container {
+          height: calc(100vh - 60px) !important;
+          padding: 10px !important;
+        }
       }
 
       /* Prevent horizontal scrolling in iframe */
       .iframe-mode * {
         max-width: 100% !important;
+        box-sizing: border-box !important;
       }
 
       /* Optimize buttons and interactive elements */
@@ -120,6 +176,40 @@ class IframeManager {
         display: flex;
         align-items: center;
         padding: 8px 16px;
+      }
+
+      /* Fix for React Native Web components */
+      .iframe-mode [data-rn-root] {
+        display: flex !important;
+        flex-direction: column !important;
+        height: 100vh !important;
+        overflow: hidden !important;
+      }
+
+      .iframe-mode [data-rn-root] > div {
+        flex: 1 !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+      }
+
+      /* Ensure proper scrolling for all content areas */
+      .iframe-mode .content-container {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        height: 100% !important;
+      }
+
+      /* Fix for cards and other containers */
+      .iframe-mode .card {
+        overflow: visible !important;
+      }
+
+      .iframe-mode .card-content {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
       }
     `;
 
@@ -225,6 +315,10 @@ class IframeManager {
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
+
+      .mobile-iframe .screen-container {
+        padding: 10px !important;
+      }
     `;
 
     const existingMobileStyles = document.getElementById('mobile-iframe-styles');
@@ -240,6 +334,7 @@ class IframeManager {
     // Prevent parent page scrolling when scrolling inside iframe
     let isScrolling = false;
 
+    // Handle wheel events
     window.addEventListener('wheel', (event) => {
       if (!isScrolling) {
         isScrolling = true;
@@ -248,56 +343,132 @@ class IframeManager {
         // Notify parent about scroll activity
         this.postMessageToParent({
           type: 'SCROLL_ACTIVITY',
-          scrollTop: window.scrollY,
-          scrollLeft: window.scrollX
+          deltaY: event.deltaY,
+          deltaX: event.deltaX
         });
       }
     }, { passive: true });
+
+    // Handle touch events for mobile
+    let touchStartY = 0;
+    let touchStartX = 0;
+
+    window.addEventListener('touchstart', (event) => {
+      touchStartY = event.touches[0].clientY;
+      touchStartX = event.touches[0].clientX;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (event) => {
+      const touchY = event.touches[0].clientY;
+      const touchX = event.touches[0].clientX;
+      const deltaY = touchStartY - touchY;
+      const deltaX = touchStartX - touchX;
+
+      // Notify parent about touch scroll activity
+      this.postMessageToParent({
+        type: 'TOUCH_SCROLL',
+        deltaY: deltaY,
+        deltaX: deltaX
+      });
+    }, { passive: true });
+
+    // Fix scrolling for all scrollable elements
+    this.fixScrollableElements();
   }
 
-  private observeHeightChanges(): void {
-    // Use ResizeObserver to monitor content height changes
-    if ('ResizeObserver' in window) {
-      const resizeObserver = new ResizeObserver((entries) => {
-        for (const entry of entries) {
-          if (entry.target === document.body) {
-            this.postMessageToParent({
-              type: 'HEIGHT_CHANGE',
-              height: entry.contentRect.height
-            });
-          }
+  private fixScrollableElements(): void {
+    // Find all elements that should be scrollable and fix their scrolling
+    const scrollableSelectors = [
+      '[data-rn-root]',
+      '.main-content',
+      '.screen-container',
+      '.content-container',
+      '[class*="ScrollView"]',
+      '.card-content'
+    ];
+
+    scrollableSelectors.forEach(selector => {
+      const elements = document.querySelectorAll(selector);
+      elements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.overflowY = 'auto';
+          element.style.overflowX = 'hidden';
+          (element.style as any).webkitOverflowScrolling = 'touch';
         }
       });
+    });
 
-      resizeObserver.observe(document.body);
-    } else {
-      // Fallback for browsers without ResizeObserver
-      setInterval(() => {
-        this.postMessageToParent({
-          type: 'HEIGHT_CHANGE',
-          height: document.body.scrollHeight
+    // Also fix any dynamically added elements
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node instanceof HTMLElement) {
+            if (scrollableSelectors.some(selector => node.matches(selector))) {
+              node.style.overflowY = 'auto';
+              node.style.overflowX = 'hidden';
+              (node.style as any).webkitOverflowScrolling = 'touch';
+            }
+          }
         });
-      }, 1000);
+      });
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+  }
+
+  private fixTouchEvents(): void {
+    // Ensure touch events work properly in iframe
+    document.addEventListener('touchstart', (event) => {
+      // Prevent default only if needed
+      if (event.target instanceof HTMLElement) {
+        const tagName = event.target.tagName.toLowerCase();
+        if (tagName === 'input' || tagName === 'textarea' || tagName === 'select') {
+          return; // Allow default behavior for form elements
+        }
+      }
+    }, { passive: true });
+
+    // Fix for iOS Safari iframe scrolling
+    if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
+      (document.body.style as any).webkitOverflowScrolling = 'touch';
+      (document.documentElement.style as any).webkitOverflowScrolling = 'touch';
     }
   }
 
+  private observeHeightChanges(): void {
+    // Observe changes in document height and notify parent
+    let lastHeight = document.body.scrollHeight;
+    
+    const observer = new ResizeObserver(() => {
+      const currentHeight = document.body.scrollHeight;
+      if (currentHeight !== lastHeight) {
+        lastHeight = currentHeight;
+        this.postMessageToParent({
+          type: 'HEIGHT_CHANGE',
+          height: currentHeight
+        });
+      }
+    });
+
+    observer.observe(document.body);
+  }
+
   private updateTheme(theme: any): void {
-    // Update app theme based on parent page
-    document.documentElement.style.setProperty('--primary-color', theme.primaryColor);
-    document.documentElement.style.setProperty('--secondary-color', theme.secondaryColor);
-    document.documentElement.style.setProperty('--background-color', theme.backgroundColor);
+    // Handle theme updates from parent
+    console.log('Theme update received:', theme);
   }
 
   private handleExternalResize(width: number, height: number): void {
-    // Handle resize events from parent
     this.config.viewportWidth = width;
     this.config.viewportHeight = height;
     this.optimizeForViewport();
   }
 
-  // Public methods
   public getConfig(): IframeConfig {
-    return { ...this.config };
+    return this.config;
   }
 
   public isInIframe(): boolean {
@@ -305,13 +476,19 @@ class IframeManager {
   }
 
   public toggleMobileSidebar(): void {
-    if (this.isInIframe() && this.config.viewportWidth < 768) {
+    if (navigator.userAgent.includes('iPhone') || navigator.userAgent.includes('iPad')) {
       const sidebar = document.querySelector('.sidebar');
       const overlay = document.querySelector('.mobile-menu-overlay');
       
       if (sidebar && overlay) {
-        sidebar.classList.toggle('mobile-open');
-        overlay.classList.toggle('active');
+        const isOpen = sidebar.classList.contains('mobile-open');
+        if (isOpen) {
+          sidebar.classList.remove('mobile-open');
+          overlay.classList.remove('active');
+        } else {
+          sidebar.classList.add('mobile-open');
+          overlay.classList.add('active');
+        }
       }
     }
   }
@@ -319,24 +496,17 @@ class IframeManager {
   public optimizeFormInputs(): void {
     // Optimize form inputs for iframe environment
     const inputs = document.querySelectorAll('input, textarea, select');
-    inputs.forEach((input) => {
-      input.addEventListener('focus', () => {
-        // Scroll input into view for mobile keyboards
-        if (this.config.viewportWidth < 768) {
-          setTimeout(() => {
-            (input as HTMLElement).scrollIntoView({
-              behavior: 'smooth',
-              block: 'center'
-            });
-          }, 300);
-        }
-      });
+    inputs.forEach(input => {
+      if (input instanceof HTMLElement) {
+        input.style.fontSize = '16px'; // Prevent zoom on iOS
+        input.style.transform = 'translateZ(0)'; // Force hardware acceleration
+      }
     });
   }
 }
 
 // Create singleton instance
-export const iframeManager = new IframeManager();
+const iframeManager = new IframeManager();
 
 // Export utility functions
 export const isInIframe = () => iframeManager.isInIframe();

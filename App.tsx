@@ -13,7 +13,7 @@ import RemindersScreen from './src/screens/RemindersScreen';
 import LoanDetailsScreen from './src/screens/LoanDetailsScreen';
 import { theme } from './src/theme';
 import { ReminderService } from './src/services/reminderService';
-import { iframeManager, isInIframe, optimizeFormInputs } from './src/utils/iframeDetection';
+import { isInIframe, optimizeFormInputs } from './src/utils/iframeDetection';
 import { auth } from './src/services/firebase';
 import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth';
 
@@ -104,6 +104,23 @@ export default function App() {
       }
     }
   }, [sidebarVisible, isIframeEnv]);
+
+  // Apply CSS classes for iframe mode
+  useEffect(() => {
+    if (Platform.OS === 'web' && isIframeEnv) {
+      // Apply CSS classes to DOM elements for iframe scrolling
+      const mainContent = document.querySelector('[data-rn-root] > div');
+      const screenContainer = mainContent?.querySelector('div[style*="flex: 1"]');
+      
+      if (mainContent) {
+        mainContent.classList.add('main-content');
+      }
+      
+      if (screenContainer) {
+        screenContainer.classList.add('screen-container');
+      }
+    }
+  }, [isIframeEnv, currentScreen]);
 
   const handleLogin = (credentials: any) => {
     console.log('Login handled by Firebase auth - state will update via onAuthStateChanged');
